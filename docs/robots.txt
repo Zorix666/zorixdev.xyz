@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Content signals (AI crawlers) — preserve search indexing, allow access
+# https://developers.cloudflare.com/ai-gateway/
+User-agent: GPTBot
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://zorixdev.xyz/sitemap.xml

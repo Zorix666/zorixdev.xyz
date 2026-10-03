@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Hub — Transit Cartography</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   TRANSIT CARTOGRAPHY · frontend-design studio approach
+
+   Thesis: The map IS the interface.
+   No cards. No hero. No scrolling. Pure cartographic information
+   design — every pixel is the transit map.
+
+   Risk: Abandoning traditional web layout entirely for a literal
+   transit map. This is either brilliant or confusing, and that
+   tension is the point.
+
+   Physical scene: A traveler before a luminous transit map in a
+   dark station hall. Colored lines glow against the dark wall.
+   The map is both signage and interface.
+   ============================================================ */
+
+:root {
+  /* Surface */
+  --bg:       #080808;
+  --surface:  #111111;
+
+  /* Transit lines — one per category */
+  --line-chat:          #4A7DFF;
+  --line-image:         #E0558A;
+  --line-code:          #2EA87A;
+  --line-research:      #D4873A;
+  --line-audio:         #3AB8C8;
+  --line-productivity:  #8B6FC0;
+
+  /* Chrome */
+  --ink:       #e8e6e1;
+  --ink-dim:   #8a8882;
+  --ink-faint: #4a4844;
+  --hairline:  #1e1e1e;
+
+  /* Type */
+  --font-display: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+  --font-body:    'Inter Tight', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Cascadia Code', monospace;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; overflow:hidden; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 350;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Canvas ── */
+#map-canvas {
+  position: fixed; inset: 0; z-index: 1;
+  cursor: crosshair;
+}
+#map-svg {
+  width: 100%; height: 100%;
+}
+
+/* ── Hub Station ── */
+.hub-group { cursor: pointer; }
+.hub-outer { transition: r 0.4s ease; }
+.hub-inner { transition: r 0.4s ease; }
+.hub-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  fill: var(--ink);
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+/* ── Transit Lines ── */
+.transit-route {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke-opacity 0.4s ease, stroke-width 0.4s ease;
+}
+.transit-route.dimmed { stroke-opacity: 0.08; }
+
+/* ── Station Dots ── */
+.station-node {
+  cursor: pointer;
+  transition: r 0.25s ease, fill 0.25s ease;
+}
+.station-label {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  fill: var(--ink);
+  text-anchor: start;
+  pointer-events: none;
+  transition: fill 0.25s ease;
+}
+.station-coord {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  fill: var(--ink-faint);
+  text-anchor: start;
+  pointer-events: none;
+}
+
+/* ── Detail Panel (slides in on hover) ── */
+#detail-panel {
+  position: fixed; right: 0; top: 0; bottom: 0;
+  width: 380px; z-index: 10;
+  background: #0e0e0e;
+  border-left: 1px solid var(--hairline);
+  transform: translateX(100%);
+  transition: transform 0.45s cubic-bezier(0.22, 0, 0, 1);
+  display: flex; flex-direction: column;
+  padding: 40px 32px;
+  backdrop-filter: blur(20px);
+}
+#detail-panel.visible { transform: translateX(0); }
+
+.panel-close {
+  position: absolute; top: 20px; right: 24px;
+  width: 32px; height: 32px; display: grid; place-items: center;
+  background: none; border: 1px solid var(--hairline);
+  border-radius: 50%; color: var(--ink-dim); cursor: pointer;
+  font-size: 16px; line-height: 1;
+  transition: border-color 0.25s, color 0.25s;
+}
+.panel-close:hover { border-color: var(--ink-dim); color: var(--ink); }
+
+.panel-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: grid; place-items: center;
+  margin-bottom: 24px;
+  font-size: 22px;
+}
+.panel-name {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 28px; letter-spacing: -0.02em;
+  color: var(--ink); margin-bottom: 6px;
+}
+.panel-desc {
+  font-size: 14px; line-height: 1.6;
+  color: var(--ink-dim); font-weight: 350;
+  margin-bottom: 24px;
+}
+.panel-line-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 20px;
+}
+.panel-line-color {
+  width: 28px; height: 3px; border-radius: 2px;
+}
+.panel-tags {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;
+}
+.panel-tag {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.05em;
+  padding: 4px 10px; border-radius: 6px;
+  background: #1a1a1a; color: var(--ink-dim);
+}
+.panel-visit {
+  font-family: var(--font-body);
+  font-size: 13px; font-weight: 500; letter-spacing: -0.01em;
+  padding: 10px 24px; border-radius: 8px;
+  border: 1px solid var(--hairline);
+  background: transparent; color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.25s, background 0.25s;
+  align-self: flex-start;
+}
+.panel-visit:hover { border-color: var(--ink-dim); background: #1a1a1a; }
+
+/* ── Top legend ── */
+#legend {
+  position: fixed; top: 24px; left: 32px; z-index: 5;
+  display: flex; gap: 20px;
+  pointer-events: none;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.06em;
+  color: var(--ink-dim);
+}
+.legend-swatch {
+  width: 20px; height: 3px; border-radius: 2px;
+}
+
+/* ── Animations ── */
+@keyframes pulse-station {
+  0%, 100% { r: 5; }
+  50% { r: 7; }
+}
+.station-node-featured { animation: pulse-station 2.5s ease-in-out infinite; }
+.station-node-featured:nth-child(1) { animation-delay: 0s; }
+.station-node-featured:nth-child(2) { animation-delay: -0.8s; }
+.station-node-featured:nth-child(3) { animation-delay: -1.6s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .station-node-featured { animation: none; }
+  #detail-panel { transition: transform 0.1s ease; }
+}
+</style>
+</head>
+<body>
+
+<svg id="map-svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <!-- Grid (faint, like station map tiles) -->
+  <defs>
+    <pattern id="map-grid" width="80" height="80" patternUnits="userSpaceOnUse">
+      <path d="M 80 0 L 0 0 0 80" fill="none" stroke="#1a1a1a" stroke-width="0.5"/>
+    </pattern>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#map-grid)" opacity="0.4"/>
+
+  <!-- Transit routes drawn by JS -->
+  <g id="routes-group"></g>
+
+  <!-- Station nodes drawn by JS -->
+  <g id="stations-group"></g>
+
+  <!-- Hub -->
+  <g id="hub-group" class="hub-group">
+    <circle cx="240" cy="420" r="64" fill="none" stroke="#1e1e1e" stroke-width="1" class="hub-outer"/>
+    <circle cx="240" cy="420" r="48" fill="none" stroke="#2a2a2a" stroke-width="1"/>
+    <circle cx="240" cy="420" r="18" fill="#e8e6e1" filter="url(#glow)"/>
+    <text x="240" y="520" class="hub-title">AI Hub</text>
+    <text x="240" y="542" font-family="var(--font-mono)" font-size="10" letter-spacing="0.12em" fill="#4a4844" text-anchor="middle">TRANSIT TERMINAL</text>
+  </g>
+</svg>
+
+<!-- Legend -->
+<div id="legend"></div>
+
+<!-- Detail Panel -->
+<div id="detail-panel">
+  <button class="panel-close" onclick="closePanel()">×</button>
+  <div class="panel-icon" id="panelIcon"></div>
+  <div class="panel-name" id="panelName"></div>
+  <div class="panel-desc" id="panelDesc"></div>
+  <div class="panel-line-badge">
+    <span class="panel-line-color" id="panelLineColor"></span>
+    <span id="panelLineName"></span>
+  </div>
+  <div class="panel-tags" id="panelTags"></div>
+  <button class="panel-visit" id="panelVisit">Open →</button>
+</div>
+
+<script>
+/* ============================================================
+   TRANSIT CARTOGRAPHY — Map Engine
+   ============================================================ */
+
+const SERVICES = [
+  { id:'claude', name:'Claude', desc:'Anthropic frontier AI — reasoning, code, creative work.', cat:'chat', url:'https://claude.ai', status:'online', tags:['reasoning','code'], featured:true },
+  { id:'chatgpt', name:'ChatGPT', desc:'OpenAI general-purpose conversational assistant.', cat:'chat', url:'https://chat.openai.com', status:'online', tags:['general','multimodal'] },
+  { id:'gemini', name:'Gemini', desc:'Google multimodal model, deep ecosystem integration.', cat:'chat', url:'https://gemini.google.com', status:'online', tags:['multimodal','google'] },
+  { id:'deepseek', name:'DeepSeek', desc:'Open-weight LLM with exceptional reasoning.', cat:'chat', url:'https://chat.deepseek.com', status:'online', tags:['reasoning','open-source'] },
+  { id:'midjourney', name:'Midjourney', desc:'Generative imagery, unparalleled aesthetic quality.', cat:'image', url:'https://midjourney.com', status:'online', tags:['generation','aesthetic'] },
+  { id:'dalle', name:'DALL·E', desc:'Precise prompt-adherent image generation.', cat:'image', url:'https://openai.com/dall-e-3', status:'online', tags:['generation','openai'] },
+  { id:'copilot', name:'Copilot', desc:'AI pair programmer, deeply IDE-integrated.', cat:'code', url:'https://github.com/features/copilot', status:'online', tags:['completion','ide'], featured:true },
+  { id:'cursor', name:'Cursor', desc:'AI-first code editor, agentic capabilities.', cat:'code', url:'https://cursor.sh', status:'online', tags:['editor','agentic'] },
+  { id:'v0', name:'v0', desc:'Vercel generative UI — components from text.', cat:'code', url:'https://v0.dev', status:'online', tags:['frontend','generation'] },
+  { id:'perplexity', name:'Perplexity', desc:'Cited real-time deep research search.', cat:'research', url:'https://perplexity.ai', status:'online', tags:['search','citations'], featured:true },
+  { id:'consensus', name:'Consensus', desc:'Academic paper AI research assistant.', cat:'research', url:'https://consensus.app', status:'online', tags:['academic','papers'] },
+  { id:'elevenlabs', name:'ElevenLabs', desc:'State-of-art voice synthesis & cloning.', cat:'audio', url:'https://elevenlabs.io', status:'online', tags:['tts','voice-cloning'] },
+  { id:'suno', name:'Suno', desc:'Full-song AI music from text prompts.', cat:'audio', url:'https://suno.ai', status:'online', tags:['music','generation'] },
+  { id:'notion', name:'Notion AI', desc:'Integrated writing & Q&A in workspace.', cat:'productivity', url:'https://notion.so/product/ai', status:'online', tags:['writing','workspace'] },
+  { id:'granola', name:'Granola', desc:'Meeting transcription & action extraction.', cat:'productivity', url:'https://granola.ai', status:'beta', tags:['meetings','transcription'] },
+];
+
+const LINE_COLORS = {
+  chat:          { hex:'#4A7DFF', css:'var(--line-chat)' },
+  image:         { hex:'#E0558A', css:'var(--line-image)' },
+  code:          { hex:'#2EA87A', css:'var(--line-code)' },
+  research:      { hex:'#D4873A', css:'var(--line-research)' },
+  audio:         { hex:'#3AB8C8', css:'var(--line-audio)' },
+  productivity:  { hex:'#8B6FC0', css:'var(--line-productivity)' },
+};
+
+const LINE_NAMES = {
+  chat:'Chat Line', image:'Image Line', code:'Code Line',
+  research:'Research Line', audio:'Audio Line', productivity:'Productivity Line',
+};
+
+const CAT_ICONS = {
+  chat: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  image: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+  code: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
+  research: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  audio: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>',
+  productivity: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+};
+
+/* ── Map Layout — hub at (240, 420) ── */
+const HUB = { x: 240, y: 420 };
+
+function computeStationPositions() {
+  // Each category is a "line" radiating from the hub at a different angle
+  const catAngles = {
+    chat: -0.6, image: -0.3, code: 0.0,
+    research: 0.3, audio: 0.6, productivity: 0.9,
+  };
+  const catSpacing = 180; // space between stations on same line
+
+  const positions = {};
+  const catStations = {};
+
+  SERVICES.forEach(s => {
+    if (!catStations[s.cat]) catStations[s.cat] = [];
+    catStations[s.cat].push(s);
+  });
+
+  Object.entries(catStations).forEach(([cat, stations]) => {
+    const angle = catAngles[cat];
+    const dirX = Math.cos(angle);
+    const dirY = Math.sin(angle);
+
+    stations.forEach((s, i) => {
+      const dist = 220 + i * catSpacing;
+      // Slight curve — each successive station on a line bends outward
+      const bend = (i - (stations.length - 1) / 2) * 0.12;
+      const bx = Math.cos(angle + bend);
+      const by = Math.sin(angle + bend);
+
+      positions[s.id] = {
+        x: HUB.x + bx * dist,
+        y: HUB.y + by * dist,
+        line: cat,
+      };
+    });
+  });
+
+  return positions;
+}
+
+/* ── Draw Transit Routes (bezier curves through stations) ── */
+function drawRoutes(positions) {
+  const group = document.getElementById('routes-group');
+  const catStations = {};
+  SERVICES.forEach(s => {
+    if (!catStations[s.cat]) catStations[s.cat] = [];
+    catStations[s.cat].push(s);
+  });
+
+  let html = '';
+  Object.entries(catStations).forEach(([cat, stations]) => {
+    const color = LINE_COLORS[cat].hex;
+    const points = stations.map(s => positions[s.id]);
+
+    // Bezier chain from hub through all stations
+    let d = `M ${HUB.x} ${HUB.y}`;
+    let prevX = HUB.x, prevY = HUB.y;
+
+    points.forEach((p, i) => {
+      const cpx = (prevX + p.x) / 2;
+      const cpy = (prevY + p.y) / 2 + (i % 2 === 0 ? 30 : -30);
+      d += ` Q ${cpx} ${cpy}, ${p.x} ${p.y}`;
+      prevX = p.x; prevY = p.y;
+    });
+
+    html += `<path class="transit-route" d="${d}"
+      stroke="${color}" stroke-width="2.5" stroke-opacity="0.55"
+      data-cat="${cat}" id="route-${cat}"/>`;
+
+    // Thin secondary line (express track)
+    html += `<path class="transit-route" d="${d}"
+      stroke="${color}" stroke-width="0.6" stroke-opacity="0.2"
+      stroke-dasharray="8 16" data-cat="${cat}"/>`;
+  });
+
+  group.innerHTML = html;
+}
+
+/* ── Draw Station Nodes ── */
+function drawStations(positions) {
+  const group = document.getElementById('stations-group');
+  let html = '';
+
+  SERVICES.forEach(s => {
+    const p = positions[s.id];
+    if (!p) return;
+    const color = LINE_COLORS[s.cat].hex;
+
+    html += `
+      <g class="station-group" data-id="${s.id}" data-cat="${s.cat}"
+         style="cursor:pointer">
+        <!-- Halo -->
+        <circle cx="${p.x}" cy="${p.y}" r="16" fill="none"
+          stroke="${color}" stroke-opacity="0.12" stroke-width="1"/>
+        <!-- Outer ring -->
+        <circle cx="${p.x}" cy="${p.y}" r="8" fill="#111"
+          stroke="${color}" stroke-opacity="0.4" stroke-width="1.5"/>
+        <!-- Core dot -->
+        <circle cx="${p.x}" cy="${p.y}" r="${s.featured ? 5 : 3.5}"
+          fill="${color}" ${s.featured ? 'filter="url(#glow)"' : ''}
+          class="${s.featured ? 'station-node-featured' : ''}"/>
+        <!-- Label -->
+        <text x="${p.x + 14}" y="${p.y + 4}"
+          class="station-label">${s.name}</text>
+        <!-- Coordinate -->
+        <text x="${p.x + 14}" y="${p.y + 18}"
+          class="station-coord">${LINE_NAMES[s.cat]}</text>
+      </g>`;
+  });
+
+  group.innerHTML = html;
+
+  // Event handlers
+  group.querySelectorAll('.station-group').forEach(el => {
+    el.addEventListener('mouseenter', () => showDetail(el.dataset.id, el.dataset.cat));
+    el.addEventListener('click', () => {
+      const svc = SERVICES.find(s => s.id === el.dataset.id);
+      if (svc) window.open(svc.url, '_blank');
+    });
+  });
+}
+
+/* ── Detail Panel ── */
+let activeServiceId = null;
+let activeLineCat = null;
+
+function showDetail(serviceId, lineCat) {
+  const svc = SERVICES.find(s => s.id === serviceId);
+  if (!svc) return;
+
+  activeServiceId = serviceId;
+  activeLineCat = lineCat;
+
+  const panel = document.getElementById('detail-panel');
+  const color = LINE_COLORS[svc.cat].hex;
+
+  document.getElementById('panelIcon').innerHTML = CAT_ICONS[svc.cat] || CAT_ICONS.chat;
+  document.getElementById('panelIcon').style.background = `${color}18`;
+  document.getElementById('panelIcon').style.color = color;
+
+  document.getElementById('panelName').textContent = svc.name;
+  document.getElementById('panelName').style.color = color;
+
+  document.getElementById('panelDesc').textContent = svc.desc;
+
+  document.getElementById('panelLineColor').style.background = color;
+  document.getElementById('panelLineName').textContent = LINE_NAMES[svc.cat];
+
+  document.getElementById('panelTags').innerHTML = svc.tags
+    .map(t => `<span class="panel-tag">${t}</span>`).join('');
+
+  const visitBtn = document.getElementById('panelVisit');
+  visitBtn.onclick = () => window.open(svc.url, '_blank');
+  visitBtn.style.borderColor = `${color}40`;
+  visitBtn.style.color = color;
+  visitBtn.onmouseenter = () => { visitBtn.style.borderColor = color; visitBtn.style.background = `${color}10`; };
+  visitBtn.onmouseleave = () => { visitBtn.style.borderColor = `${color}40`; visitBtn.style.background = 'transparent'; };
+
+  panel.classList.add('visible');
+
+  // Dim other routes
+  document.querySelectorAll('.transit-route').forEach(route => {
+    if (route.dataset.cat && route.dataset.cat !== svc.cat) {
+      route.classList.add('dimmed');
+    }
+  });
+  // Highlight active route
+  const activeRoute = document.getElementById(`route-${svc.cat}`);
+  if (activeRoute) {
+    activeRoute.setAttribute('stroke-opacity', '0.85');
+    activeRoute.setAttribute('stroke-width', '3.5');
+  }
+
+  // Dim other station labels
+  document.querySelectorAll('.station-label, .station-coord').forEach(el => {
+    const g = el.closest('.station-group');
+    if (g && g.dataset.cat !== svc.cat) {
+      el.style.opacity = '0.2';
+    }
+  });
+}
+
+function closePanel() {
+  document.getElementById('detail-panel').classList.remove('visible');
+  document.querySelectorAll('.transit-route').forEach(route => {
+    route.classList.remove('dimmed');
+    if (route.id && !route.id.includes('dasharray')) {
+      route.setAttribute('stroke-opacity', '0.55');
+      route.setAttribute('stroke-width', '2.5');
+    }
+  });
+  document.querySelectorAll('.station-label, .station-coord').forEach(el => {
+    el.style.opacity = '';
+  });
+  activeServiceId = null;
+}
+
+/* ── Legend ── */
+function drawLegend() {
+  const legend = document.getElementById('legend');
+  legend.innerHTML = Object.entries(LINE_COLORS).map(([cat, color]) => `
+    <div class="legend-item" style="cursor:pointer"
+         onmouseenter="highlightLine('${cat}')"
+         onmouseleave="unhighlightLine('${cat}')">
+      <span class="legend-swatch" style="background:${color.hex}"></span>
+      <span>${LINE_NAMES[cat]}</span>
+    </div>
+  `).join('');
+}
+
+function highlightLine(cat) {
+  document.querySelectorAll('.transit-route').forEach(r => {
+    if (r.dataset.cat !== cat) r.classList.add('dimmed');
+  });
+  const route = document.getElementById(`route-${cat}`);
+  if (route) { route.setAttribute('stroke-opacity', '0.85'); route.setAttribute('stroke-width', '3.5'); }
+}
+function unhighlightLine(cat) {
+  document.querySelectorAll('.transit-route').forEach(r => r.classList.remove('dimmed'));
+  const route = document.getElementById(`route-${cat}`);
+  if (route) { route.setAttribute('stroke-opacity', '0.55'); route.setAttribute('stroke-width', '2.5'); }
+}
+
+/* ── Hub interaction ── */
+document.getElementById('hub-group').addEventListener('mouseenter', () => {
+  document.querySelectorAll('.transit-route').forEach((r, i) => {
+    if (!r.id.includes('dasharray')) {
+      r.setAttribute('stroke-opacity', '0.8');
+      r.setAttribute('stroke-width', '3');
+    }
+  });
+});
+document.getElementById('hub-group').addEventListener('mouseleave', () => {
+  if (!activeServiceId) {
+    document.querySelectorAll('.transit-route').forEach(r => {
+      r.classList.remove('dimmed');
+      if (!r.id.includes('dasharray')) {
+        r.setAttribute('stroke-opacity', '0.55');
+        r.setAttribute('stroke-width', '2.5');
+      }
+    });
+  }
+});
+document.getElementById('hub-group').addEventListener('click', () => {
+  closePanel();
+});
+
+/* ── Init ── */
+const positions = computeStationPositions();
+drawRoutes(positions);
+drawStations(positions);
+drawLegend();
+
+/* Close panel on Escape */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closePanel();
+});
+
+/* Close panel on click outside */
+document.getElementById('map-svg').addEventListener('click', e => {
+  if (e.target === document.getElementById('map-svg') ||
+      e.target.tagName === 'rect') {
+    closePanel();
+  }
+});
+</script>
+</body>
+</html>

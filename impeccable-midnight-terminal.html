@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Hub — Midnight Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   MIDNIGHT TERMINAL · impeccable product register
+   Seed: oklch(0.360 0.140 260.0) — cobalt/indigo
+   Mood: "Midnight transit terminal — deep indigo shadows
+          pierced by precise signal-blue light, the quiet hum
+          of a station between destinations."
+   Strategy: Committed — indigo carries 40% of the surface
+   ============================================================ */
+
+:root {
+  /* OKLCH palette */
+  --bg:       oklch(0.07 0 0);
+  --surface:  oklch(0.13 0.004 260);
+  --surface-raised: oklch(0.17 0.006 260);
+  --primary:  oklch(0.55 0.17 260);
+  --primary-glow: oklch(0.65 0.12 260);
+  --ink:      oklch(0.94 0 0);
+  --ink-soft: oklch(0.82 0 0);
+  --accent:   oklch(0.72 0.14 185);
+  --accent-dim: oklch(0.58 0.10 185);
+  --muted:    oklch(0.48 0 0);
+  --hairline: oklch(0.22 0 0);
+  --danger:   oklch(0.55 0.18 25);
+
+  /* Type */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', monospace;
+
+  /* Spacing scale (8px base) */
+  --s-1: 8px;   --s-2: 16px;  --s-3: 24px;
+  --s-4: 32px;  --s-6: 48px;  --s-8: 64px;
+  --s-12: 96px; --s-16: 128px;
+
+  /* Radii */
+  --r-sm: 6px;  --r-md: 12px; --r-lg: 20px;
+}
+
+/* ── Reset ── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-weight: 350;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+::selection { background: oklch(0.55 0.17 260 / 0.35); color: var(--ink); }
+
+/* ── App Shell ── */
+#app {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Top Bar ── */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--s-2) var(--s-4);
+  border-bottom: 1px solid var(--hairline);
+  background: var(--bg);
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+}
+.brand-mark {
+  width: 28px; height: 28px;
+  display: grid; place-items: center;
+  background: var(--primary);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 13px; font-weight: 500;
+  border-radius: var(--r-sm);
+}
+.brand-name {
+  font-size: 15px; font-weight: 500; letter-spacing: -0.01em; color: var(--ink);
+}
+.brand-line {
+  color: var(--muted); font-size: 13px; font-weight: 350; letter-spacing: 0.04em;
+}
+
+/* ── Bottom Bar ── */
+.bottombar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px var(--s-4);
+  border-top: 1px solid var(--hairline);
+  background: var(--bg);
+  font-size: 11px; font-family: var(--font-mono);
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+}
+
+/* ── Main Canvas ── */
+.main-canvas {
+  position: relative; overflow: hidden;
+}
+
+/* SVG transit layer */
+.transit-layer {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  width: 100%; height: 100%;
+}
+.transit-line {
+  fill: none;
+  stroke: oklch(0.28 0.01 260);
+  stroke-width: 1;
+  stroke-linecap: round;
+  transition: stroke 0.5s ease, stroke-width 0.5s ease;
+}
+
+/* ── Hub Node ── */
+.hub-anchor {
+  position: absolute; z-index: 10;
+  top: 18%; left: 10%;
+}
+.hub-core {
+  position: relative;
+  width: 72px; height: 72px;
+  display: grid; place-items: center;
+}
+.hub-ring-outer {
+  position: absolute; inset: -18px;
+  border-radius: 50%;
+  border: 1px solid oklch(0.55 0.17 260 / 0.18);
+}
+.hub-ring-inner {
+  position: absolute; inset: -8px;
+  border-radius: 50%;
+  border: 1px solid oklch(0.55 0.17 260 / 0.12);
+}
+.hub-dot {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 32px oklch(0.55 0.17 260 / 0.35);
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hub-dot:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 48px oklch(0.55 0.17 260 / 0.5);
+}
+.hub-label {
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ── Station Cards ── */
+.stations-layer {
+  position: absolute; inset: 0; z-index: 5;
+  pointer-events: none;
+}
+.station-card {
+  position: absolute;
+  pointer-events: auto;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  padding: var(--s-3);
+  cursor: pointer;
+  transition: background 0.3s ease, border-color 0.3s ease, transform 0.4s cubic-bezier(0.25, 0, 0, 1);
+  min-width: 200px; max-width: 260px;
+}
+.station-card:hover {
+  background: var(--surface-raised);
+  border-color: oklch(0.35 0.04 260);
+}
+.station-card.active {
+  border-color: var(--primary);
+  background: var(--surface-raised);
+}
+.station-icon {
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  border-radius: var(--r-sm);
+  margin-bottom: var(--s-2);
+  font-size: 16px;
+}
+.station-icon svg { width: 18px; height: 18px; stroke-width: 1.5; }
+.station-name {
+  font-size: 15px; font-weight: 550; letter-spacing: -0.01em;
+  color: var(--ink); margin-bottom: 4px;
+}
+.station-desc {
+  font-size: 12px; line-height: 1.55; color: var(--muted);
+  font-weight: 350;
+}
+.station-tags {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px;
+}
+.station-tag {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.06em;
+  padding: 3px 8px; border-radius: var(--r-sm);
+  background: oklch(0.55 0.17 260 / 0.08);
+  color: var(--primary-glow);
+}
+.station-status {
+  display: inline-flex; align-items: center; gap: 5px;
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+}
+.status-dot.online { background: var(--accent); }
+.status-dot.beta { background: oklch(0.70 0.13 80); }
+.status-dot.offline { background: var(--muted); }
+
+/* ── Category filter pills ── */
+.filter-bar {
+  position: absolute; bottom: var(--s-6); left: 50%; z-index: 15;
+  display: flex; gap: var(--s-1);
+  transform: translateX(-50%);
+}
+.filter-pill {
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.06em;
+  padding: 6px 14px; border-radius: 20px;
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+.filter-pill:hover {
+  border-color: oklch(0.40 0.06 260);
+  color: var(--ink);
+}
+.filter-pill.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--ink);
+}
+
+/* ── Animations ── */
+@keyframes line-pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.55; }
+}
+@keyframes hub-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+@keyframes float-1 {
+  0%, 100% { transform: translateY(0); }
+  33% { transform: translateY(-5px); }
+  66% { transform: translateY(3px); }
+}
+
+.anim-line { animation: line-pulse 3.5s ease-in-out infinite; }
+.anim-line:nth-child(2) { animation-delay: -0.8s; }
+.anim-line:nth-child(3) { animation-delay: -1.6s; }
+.anim-line:nth-child(4) { animation-delay: -2.4s; }
+.anim-line:nth-child(5) { animation-delay: -3.0s; }
+
+.anim-hub { animation: hub-breathe 4.5s ease-in-out infinite; }
+
+.anim-float { animation: float-1 6s ease-in-out infinite; }
+.anim-float:nth-child(1) { animation-delay: 0s; animation-duration: 5.5s; }
+.anim-float:nth-child(2) { animation-delay: -1.2s; animation-duration: 6.5s; }
+.anim-float:nth-child(3) { animation-delay: -2.7s; animation-duration: 5.0s; }
+.anim-float:nth-child(4) { animation-delay: -3.5s; animation-duration: 7.0s; }
+.anim-float:nth-child(5) { animation-delay: -4.8s; animation-duration: 5.8s; }
+.anim-float:nth-child(6) { animation-delay: -5.9s; animation-duration: 6.2s; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .anim-line, .anim-hub, .anim-float {
+    animation: none !important;
+  }
+  .station-card { transition: background 0.15s ease, border-color 0.15s ease; }
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">H</div>
+      <span class="brand-name">AI Hub</span>
+      <span class="brand-line">· Midnight Terminal</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <span style="font-family:var(--font-mono);font-size:11px;color:var(--accent-dim);letter-spacing:0.06em;">15 services online</span>
+    </div>
+  </header>
+
+  <!-- Main Canvas -->
+  <main class="main-canvas" id="mainCanvas">
+    <!-- SVG Transit Lines -->
+    <svg class="transit-layer" id="transitLayer" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+      <!-- Lines drawn by JS -->
+    </svg>
+
+    <!-- Hub Node -->
+    <div class="hub-anchor" id="hubNode">
+      <div class="hub-core">
+        <div class="hub-ring-outer anim-hub"></div>
+        <div class="hub-ring-inner anim-hub" style="animation-delay:-1s;"></div>
+        <div class="hub-dot" id="hubDot"></div>
+      </div>
+      <div class="hub-label">Terminal</div>
+    </div>
+
+    <!-- Station Cards -->
+    <div class="stations-layer" id="stationsLayer"></div>
+
+    <!-- Category Filters -->
+    <div class="filter-bar" id="filterBar"></div>
+  </main>
+
+  <!-- Bottom Bar -->
+  <footer class="bottombar">
+    <span>Transit Lines <span id="lineCount" style="color:var(--primary-glow);">6</span></span>
+    <span>Active <span id="activeCount" style="color:var(--accent);">15</span></span>
+    <span id="hoveredStation" style="color:var(--ink-soft);">·</span>
+  </footer>
+</div>
+
+<script>
+/* ============================================================
+   MIDNIGHT TERMINAL — Data & Logic
+   ============================================================ */
+
+const SERVICES = [
+  // Chat line
+  { id:'claude', name:'Claude', desc:'Anthropic frontier reasoning & code.', cat:'chat', url:'https://claude.ai', status:'online', tags:['reasoning','code'], featured:true },
+  { id:'chatgpt', name:'ChatGPT', desc:'OpenAI general conversational AI.', cat:'chat', url:'https://chat.openai.com', status:'online', tags:['general','multimodal'] },
+  { id:'gemini', name:'Gemini', desc:'Google multimodal with ecosystem depth.', cat:'chat', url:'https://gemini.google.com', status:'online', tags:['multimodal','google'] },
+  { id:'deepseek', name:'DeepSeek', desc:'Open-weight reasoning specialist.', cat:'chat', url:'https://chat.deepseek.com', status:'online', tags:['reasoning','open'] },
+  // Image line
+  { id:'midjourney', name:'Midjourney', desc:'Unparalleled aesthetic generation.', cat:'image', url:'https://midjourney.com', status:'online', tags:['generation','aesthetic'] },
+  { id:'dalle', name:'DALL·E', desc:'Precise prompt-adherent generation.', cat:'image', url:'https://openai.com/dall-e-3', status:'online', tags:['generation','openai'] },
+  // Code line
+  { id:'copilot', name:'GitHub Copilot', desc:'AI pair programmer, IDE-native.', cat:'code', url:'https://github.com/features/copilot', status:'online', tags:['completion','ide'], featured:true },
+  { id:'cursor', name:'Cursor', desc:'AI-first editor, agentic capabilities.', cat:'code', url:'https://cursor.sh', status:'online', tags:['editor','agentic'] },
+  { id:'v0', name:'v0 by Vercel', desc:'Generative UI from text prompts.', cat:'code', url:'https://v0.dev', status:'online', tags:['frontend','gen'] },
+  // Research line
+  { id:'perplexity', name:'Perplexity', desc:'Cited, real-time deep research.', cat:'research', url:'https://perplexity.ai', status:'online', tags:['search','citations'], featured:true },
+  { id:'consensus', name:'Consensus', desc:'Academic paper search assistant.', cat:'research', url:'https://consensus.app', status:'online', tags:['academic','papers'] },
+  // Audio line
+  { id:'elevenlabs', name:'ElevenLabs', desc:'State-of-art voice synthesis.', cat:'audio', url:'https://elevenlabs.io', status:'online', tags:['tts','cloning'] },
+  { id:'suno', name:'Suno', desc:'Full-song AI music generation.', cat:'audio', url:'https://suno.ai', status:'online', tags:['music','gen'] },
+  // Productivity line
+  { id:'notion', name:'Notion AI', desc:'Integrated writing & Q&A in workspace.', cat:'productivity', url:'https://notion.so/product/ai', status:'online', tags:['writing','workspace'] },
+  { id:'granola', name:'Granola', desc:'Meeting transcription & summaries.', cat:'productivity', url:'https://granola.ai', status:'beta', tags:['meetings','transcription'] },
+];
+
+const CATS = [
+  { key:'all', label:'All Lines', labelZh:'全部' },
+  { key:'chat', label:'Conversation', labelZh:'对话' },
+  { key:'image', label:'Image', labelZh:'图像' },
+  { key:'code', label:'Code', labelZh:'代码' },
+  { key:'research', label:'Research', labelZh:'研究' },
+  { key:'audio', label:'Audio', labelZh:'音频' },
+  { key:'productivity', label:'Productivity', labelZh:'生产力' },
+];
+
+/* ── Layout Engine ── */
+function computeLayout() {
+  const w = window.innerWidth;
+  const h = window.innerHeight - 100; // subtract top/bottom bars
+
+  // Hub position (percentage-based, responds to viewport)
+  const hubX = w < 900 ? 0.5 : 0.12;
+  const hubY = w < 900 ? 0.12 : 0.20;
+
+  // Station clusters — each category fans out from hub
+  const angles = {
+    chat: -0.55, image: -0.25, code: 0.05,
+    research: 0.35, audio: 0.65, productivity: 0.95,
+  };
+  const distances = {
+    chat: 0.42, image: 0.52, code: 0.38,
+    research: 0.48, audio: 0.55, productivity: 0.44,
+  };
+
+  const positions = {};
+  const catCounts = {};
+  SERVICES.forEach(s => {
+    catCounts[s.cat] = (catCounts[s.cat] || 0) + 1;
+  });
+
+  const catOffsets = {};
+  SERVICES.forEach((s, i) => {
+    const idx = catOffsets[s.cat] || 0;
+    catOffsets[s.cat] = idx + 1;
+    const total = catCounts[s.cat];
+    const baseAngle = angles[s.cat];
+    const spread = 0.15;
+    const angle = baseAngle + (idx - (total-1)/2) * (spread / Math.max(total-1, 1));
+    const dist = distances[s.cat];
+    const x = hubX + Math.cos(angle) * dist;
+    const y = hubY + Math.sin(angle) * dist;
+    positions[s.id] = { x, y, angle, dist };
+  });
+
+  return { hubX, hubY, positions };
+}
+
+/* ── SVG Line Drawing ── */
+function drawLines(layout, activeCategory) {
+  const svg = document.getElementById('transitLayer');
+  const w = window.innerWidth;
+  const h = window.innerHeight - 100;
+  const hubPX = layout.hubX * w;
+  const hubPY = layout.hubY * h;
+
+  let html = '';
+
+  // Group by category for transit lines
+  const catServices = {};
+  SERVICES.forEach(s => {
+    if (!catServices[s.cat]) catServices[s.cat] = [];
+    catServices[s.cat].push(s);
+  });
+
+  Object.entries(catServices).forEach(([cat, services], ci) => {
+    const isActive = activeCategory === 'all' || activeCategory === cat;
+    const lineColor = isActive
+      ? 'oklch(0.55 0.17 260 / 0.5)'
+      : 'oklch(0.25 0.008 260 / 0.4)';
+    const lineWidth = isActive ? 1.2 : 0.7;
+
+    // Draw curved path from hub through all stations in this category
+    const points = services.map(s => {
+      const p = layout.positions[s.id];
+      return { x: p.x * w, y: p.y * h };
+    });
+
+    if (points.length === 1) {
+      const p = points[0];
+      const mx = (hubPX + p.x) / 2 + 20;
+      const my = (hubPY + p.y) / 2 - 30;
+      html += `<path class="transit-line anim-line"
+        d="M${hubPX},${hubPY} Q${mx},${my} ${p.x},${p.y}"
+        style="stroke:${lineColor};stroke-width:${lineWidth};animation-delay:${-ci * 0.7}s;"
+        data-cat="${cat}"/>`;
+    } else if (points.length === 2) {
+      const p0 = points[0], p1 = points[1];
+      const mx0 = (hubPX + p0.x) / 2 + 15;
+      const my0 = (hubPY + p0.y) / 2 - 20;
+      const mx1 = (p0.x + p1.x) / 2;
+      const my1 = (p0.y + p1.y) / 2 + 25;
+      html += `<path class="transit-line anim-line"
+        d="M${hubPX},${hubPY} Q${mx0},${my0} ${p0.x},${p0.y} Q${mx1},${my1} ${p1.x},${p1.y}"
+        style="stroke:${lineColor};stroke-width:${lineWidth};animation-delay:${-ci * 0.7}s;"
+        data-cat="${cat}"/>`;
+    } else {
+      // Multi-point: cubic bezier chain
+      let d = `M${hubPX},${hubPY}`;
+      for (let i = 0; i < points.length; i++) {
+        const p = points[i];
+        const prev = i === 0 ? { x: hubPX, y: hubPY } : points[i-1];
+        const cpx = (prev.x + p.x) / 2 + (i % 2 === 0 ? 20 : -20);
+        const cpy = (prev.y + p.y) / 2 + (i % 2 === 0 ? -15 : 15);
+        d += ` Q${cpx},${cpy} ${p.x},${p.y}`;
+      }
+      html += `<path class="transit-line anim-line"
+        d="${d}"
+        style="stroke:${lineColor};stroke-width:${lineWidth};animation-delay:${-ci * 0.7}s;"
+        data-cat="${cat}"/>`;
+    }
+  });
+
+  svg.innerHTML = html;
+}
+
+/* ── Render Station Cards ── */
+function renderCards(layout, activeCategory) {
+  const layer = document.getElementById('stationsLayer');
+  const w = window.innerWidth;
+  const h = window.innerHeight - 100;
+
+  const filtered = activeCategory === 'all'
+    ? SERVICES
+    : SERVICES.filter(s => s.cat === activeCategory);
+
+  layer.innerHTML = filtered.map((s, i) => {
+    const p = layout.positions[s.id];
+    if (!p) return '';
+    const left = p.x * w;
+    const top = p.y * h;
+
+    const icons = {
+      chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+      image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+      code: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
+      research: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+      audio: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>',
+      productivity: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+    };
+
+    const statusColors = {
+      online: 'oklch(0.72 0.14 185)',
+      beta: 'oklch(0.70 0.13 80)',
+      offline: 'oklch(0.48 0 0)',
+    };
+
+    return `
+      <div class="station-card anim-float"
+           style="left:${left}px;top:${top}px;transform:translate(-50%,-50%);animation-delay:${-i * 1.1}s;"
+           data-id="${s.id}" data-cat="${s.cat}"
+           onclick="window.open('${s.url}','_blank')">
+        <div class="station-icon" style="color:var(--primary-glow);">${icons[s.cat] || icons.chat}</div>
+        <div class="station-name">${s.name}${s.featured ? ' <span style="font-size:10px;color:var(--accent-dim);">★</span>' : ''}</div>
+        <div class="station-desc">${s.desc}</div>
+        <div class="station-tags">${s.tags.map(t => `<span class="station-tag">${t}</span>`).join('')}</div>
+        <div class="station-status" style="color:${statusColors[s.status]}">
+          <span class="status-dot ${s.status}"></span> ${s.status}
+        </div>
+      </div>`;
+  }).join('');
+
+  // Hover handlers
+  layer.querySelectorAll('.station-card').forEach(card => {
+    card.addEventListener('mouseenter', () => {
+      card.classList.add('active');
+      const id = card.dataset.id;
+      const svc = SERVICES.find(s => s.id === id);
+      document.getElementById('hoveredStation').textContent = svc ? svc.name : '·';
+      // Highlight associated transit line
+      const cat = card.dataset.cat;
+      document.querySelectorAll('.transit-line').forEach(l => {
+        if (l.dataset.cat === cat) {
+          l.style.stroke = 'oklch(0.65 0.13 185 / 0.7)';
+          l.style.strokeWidth = '1.8';
+        }
+      });
+    });
+    card.addEventListener('mouseleave', () => {
+      card.classList.remove('active');
+      document.getElementById('hoveredStation').textContent = '·';
+      const activeCat = document.querySelector('.filter-pill.active')?.dataset.cat || 'all';
+      drawLines(layout, activeCat);
+    });
+  });
+}
+
+/* ── Render Filters ── */
+function renderFilters(activeCategory) {
+  const bar = document.getElementById('filterBar');
+  bar.innerHTML = CATS.map(c => `
+    <button class="filter-pill ${activeCategory === c.key ? 'active' : ''}"
+            data-cat="${c.key}">${c.labelZh} · ${c.label}</button>
+  `).join('');
+
+  bar.querySelectorAll('.filter-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cat = btn.dataset.cat;
+      refresh(cat);
+    });
+  });
+}
+
+/* ── Refresh All ── */
+let currentLayout;
+let currentCategory = 'all';
+
+function refresh(category) {
+  currentCategory = category;
+  currentLayout = computeLayout();
+  drawLines(currentLayout, currentCategory);
+  renderCards(currentLayout, currentCategory);
+  renderFilters(currentCategory);
+  document.getElementById('activeCount').textContent =
+    category === 'all' ? SERVICES.length : SERVICES.filter(s => s.cat === category).length;
+  document.getElementById('lineCount').textContent =
+    category === 'all' ? CATS.length - 1 : 1;
+}
+
+/* ── Init ── */
+refresh('all');
+window.addEventListener('resize', () => refresh(currentCategory));
+
+/* Hub hover — pulse all lines */
+document.getElementById('hubDot').addEventListener('mouseenter', () => {
+  document.querySelectorAll('.transit-line').forEach((l, i) => {
+    l.style.stroke = `oklch(0.65 0.13 185 / ${0.5 + i * 0.08})`;
+    l.style.strokeWidth = '1.6';
+  });
+});
+document.getElementById('hubDot').addEventListener('mouseleave', () => {
+  refresh(currentCategory);
+});
+</script>
+</body>
+</html>

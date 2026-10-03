@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AIHub — AI 工具索引</title>
+<meta name="description" content="一份编辑级的 AI 工具索引。350+ 个模型、API 中转站与工具，按用途编目为 14 类。精挑、归档、持续更新。" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     AIHub · 编辑级工具索引
+     色板 + 字体来自最终设计方向
+     ============================================================ */
+
+  /* —— 核心 token（用户指定精确 hex）—— */
+  :root {
+    --bg:            #F0EEE6;
+    --card:          #E3DACC;
+    --action:        #141413;
+    --cat-bg:        #E8E6DC;
+    --tag-outline:   #FAF9F5;
+    --ink:           #141413;
+    --muted:         #6E6C64;
+
+    /* 派生 token — 仅在核心 token 对比度不足的表面上使用 */
+    --muted-dark:    #B5B2A9;   /* 暗面辅助文字，对 #141413 ≈8.7:1 */
+    --muted-card:    #59574F;   /* 卡片面辅助文字，对 #E3DACC ≈4.6:1 */
+    --line-on-bg:    #DBD6C8;   /* 发丝线 */
+    --line-on-dark:  #2E2D2B;   /* 暗面发丝线 */
+    --ink-dim:       #141413;   /* 主体文字：通过 opacity 控制层级 */
+  }
+
+  /* —— 字体（用户指定）—— */
+  :root {
+    --serif: "Newsreader", Georgia, "Noto Serif SC", "Songti SC", serif;
+    --sans:  "Instrument Sans", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, "Cascadia Code", monospace;
+  }
+
+  /* —— 字阶 —— */
+  :root {
+    --fs--1: clamp(0.72rem, 0.70rem + 0.08vw, 0.78rem);
+    --fs-0:  clamp(0.92rem, 0.88rem + 0.18vw, 1.02rem);
+    --fs-1:  clamp(1.10rem, 1.00rem + 0.42vw, 1.40rem);
+    --fs-2:  clamp(1.45rem, 1.20rem + 1.0vw, 2.05rem);
+    --fs-3:  clamp(2.00rem, 1.50rem + 2.5vw, 3.60rem);
+    --fs-4:  clamp(2.70rem, 1.80rem + 4.5vw, 5.00rem);
+
+    --gutter: clamp(1.2rem, 0.8rem + 2vw, 2.6rem);
+    --s-gap:  clamp(3rem, 2rem + 4vw, 5.5rem);
+
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --z-sticky: 80;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: var(--fs-0);
+    font-weight: 400;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--ink); color: var(--tag-outline); }
+  a { color: inherit; text-decoration: none; }
+  .wrap { width: min(100% - 2 * var(--gutter), 1160px); margin-inline: auto; }
+
+  /* ============================================================
+     顶栏 — 随滚动浮现细线
+     ============================================================ */
+  .topbar {
+    position: sticky; top: 0; z-index: var(--z-sticky);
+    background: color-mix(in oklab, var(--bg) 86%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.4s var(--ease);
+  }
+  .topbar[data-stuck="true"] { border-bottom-color: var(--line-on-bg); }
+  .topbar__in {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 1.25rem; padding-block: 0.85rem;
+  }
+  .topbar__brand {
+    font-family: var(--serif); font-weight: 500; font-size: var(--fs-1);
+    letter-spacing: -0.015em; line-height: 1;
+  }
+
+  /* 右上角：语言切换 + 统计 */
+  .topbar__right {
+    display: flex; align-items: center; gap: 0.8rem;
+    font-family: var(--sans); font-size: 0.72rem; letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+  .lang-switch { display: flex; align-items: center; gap: 0.3rem; }
+  .lang-switch button {
+    background: none; border: none; padding: 0; cursor: pointer;
+    font-family: inherit; font-size: inherit; letter-spacing: inherit;
+    color: inherit; opacity: 0.5;
+    transition: opacity 0.2s var(--ease), color 0.2s var(--ease);
+  }
+  .lang-switch button:hover { opacity: 1; }
+  .lang-switch button.is-active { color: var(--ink); opacity: 1; font-weight: 500; }
+  .lang-switch .sep { opacity: 0.3; }
+  .topbar__sep { opacity: 0.3; }
+
+  .topbar__stats {
+    font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .topbar__stats b { color: var(--ink); font-weight: 500; }
+
+  /* ============================================================
+     暗面报头 — action-block 深色带，紧凑
+     ============================================================ */
+  .masthead {
+    background: var(--action);
+    color: var(--tag-outline);
+    padding-block: clamp(2.5rem, 2rem + 4vw, 5rem);
+  }
+  .masthead__kicker {
+    font-family: var(--mono); font-size: var(--fs--1); color: var(--muted-dark);
+    letter-spacing: 0.06em; margin-bottom: 1.2rem;
+    display: flex; align-items: center; gap: 0.65rem;
+  }
+  .masthead__kicker::before {
+    content: ""; width: 1.8rem; height: 1px;
+    background: var(--tag-outline); opacity: 0.35; display: inline-block;
+  }
+  .masthead h1 {
+    font-family: var(--serif); font-weight: 400;
+    font-size: var(--fs-4); line-height: 1.03; letter-spacing: -0.025em;
+    text-wrap: balance; color: var(--tag-outline); max-width: 20ch;
+  }
+  .masthead h1 em {
+    font-style: italic; font-weight: 400;
+    color: var(--tag-outline); opacity: 0.72;
+  }
+  .masthead__sub {
+    margin-top: clamp(1.2rem, 0.8rem + 1.5vw, 1.8rem);
+    font-size: var(--fs-1); color: var(--muted-dark); font-weight: 400;
+    max-width: 42ch; line-height: 1.55; text-wrap: pretty;
+  }
+  .masthead__stats {
+    margin-top: clamp(1.8rem, 1.2rem + 2vw, 2.8rem);
+    display: flex; gap: clamp(1.5rem, 1rem + 2vw, 2.8rem); flex-wrap: wrap;
+  }
+  .stat { line-height: 1.05; }
+  .stat__num {
+    font-family: var(--serif); font-size: var(--fs-2); font-weight: 500;
+    color: var(--tag-outline); font-variant-numeric: tabular-nums;
+  }
+  .stat__label {
+    display: block; font-size: var(--fs--1); color: var(--muted-dark);
+    margin-top: 0.2rem;
+  }
+
+  /* —— 目录过渡带 — 浅色底，暗面→编目的视觉桥梁 —— */
+  .toc-strip {
+    background: var(--bg);
+    border-bottom: 1px solid var(--line-on-bg);
+    padding-block: 1rem;
+  }
+  .toc-strip .wrap {
+    display: flex; align-items: baseline; gap: 0.75rem 1.25rem;
+    flex-wrap: wrap;
+  }
+  .toc-strip__label {
+    font-family: var(--mono); font-size: var(--fs--1); color: var(--muted);
+    letter-spacing: 0.04em; white-space: nowrap; flex-shrink: 0;
+  }
+  .toc-strip__list {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-wrap: wrap; gap: 0.25rem 0.1rem;
+  }
+  .toc-strip__list li { display: inline; }
+  .toc-strip__list a {
+    font-family: var(--serif); font-size: var(--fs-0); font-weight: 500;
+    color: var(--ink); padding: 0.2rem 0.1rem;
+    transition: opacity 0.25s var(--ease);
+  }
+  .toc-strip__list a::after { content: "·"; color: var(--line-on-bg); margin: 0 0.3rem; font-family: var(--sans); }
+  .toc-strip__list li:last-child a::after { display: none; }
+  .toc-strip__list a:hover { opacity: 0.55; }
+
+  /* —— 过滤面板 —— */
+  .filter-bar {
+    background: var(--cat-bg);
+    border-bottom: 1px solid var(--line-on-bg);
+    padding-block: 1.1rem;
+  }
+  .filter-bar .wrap {
+    display: flex; flex-direction: column; gap: 0.85rem;
+  }
+  .filter-bar__row {
+    display: flex; align-items: flex-start; gap: 0.75rem 1.25rem;
+    flex-wrap: wrap;
+  }
+  @media (min-width: 641px) {
+    .filter-bar__row { align-items: center; }
+  }
+  .filter-bar__label {
+    font-family: var(--sans); font-size: 0.68rem; font-weight: 500;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em;
+    white-space: nowrap; width: 5.5rem; flex-shrink: 0; padding-top: 0.25rem;
+  }
+  @media (max-width: 640px) {
+    .filter-bar__label { width: auto; min-width: 4.5rem; }
+  }
+  .filter-bar__chips {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+  }
+  .filter-chip {
+    font-family: var(--sans); font-size: 0.7rem; letter-spacing: 0.02em;
+    padding: 0.3rem 0.75rem; border-radius: 5px; cursor: pointer;
+    border: 1px solid transparent; background: transparent; color: var(--muted);
+    transition: all 0.2s var(--ease);
+  }
+  .filter-chip:hover { color: var(--ink); border-color: color-mix(in oklab, var(--tag-outline) 50%, transparent); }
+  .filter-chip.is-active {
+    background: var(--tag-outline); border-color: var(--tag-outline);
+    color: var(--ink); font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .filter-bar__divider {
+    height: 1px; background: color-mix(in oklab, var(--ink) 5%, transparent);
+    width: 100%;
+  }
+
+  /* ============================================================
+     编目分区 — 明暗交替的编辑节奏
+     ============================================================ */
+
+  /* 每个 section 是一个完整的横向带 */
+  .section {
+    padding-block: var(--s-gap);
+    scroll-margin-top: 4.5rem;
+  }
+  /* 交替底色 */
+  .section:nth-child(odd)  { background: var(--bg); }
+  .section:nth-child(even) { background: var(--cat-bg); }
+
+  .section__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.3fr);
+    gap: clamp(1.5rem, 0.5rem + 4vw, 3.5rem);
+    align-items: start;
+  }
+  @media (max-width: 820px) {
+    .section__grid { grid-template-columns: 1fr; gap: 1.5rem; }
+  }
+
+  /* 左栏 sticky */
+  @media (min-width: 821px) {
+    .section__rail { position: sticky; top: 5rem; align-self: start; }
+  }
+  .section__index {
+    font-family: var(--serif); font-size: var(--fs-2); font-weight: 400;
+    color: var(--ink); opacity: 0.22;
+    font-variant-numeric: tabular-nums; line-height: 1; letter-spacing: -0.01em;
+  }
+  .section__title {
+    font-family: var(--serif); font-size: var(--fs-2); font-weight: 500;
+    letter-spacing: -0.015em; line-height: 1.08; margin-top: 0.5rem;
+    text-wrap: balance; color: var(--ink);
+  }
+  .section__en {
+    font-family: var(--serif); font-style: italic; font-size: var(--fs--1);
+    color: var(--muted); letter-spacing: 0.02em; margin-top: 0.3rem;
+  }
+  .section__desc {
+    margin-top: 0.85rem; color: var(--muted); font-size: var(--fs-0);
+    font-weight: 400; max-width: 28ch; line-height: 1.55; text-wrap: pretty;
+  }
+
+  /* —— 索引行 —— */
+  .entries { border-top: 1px solid var(--ink); }
+  .entry {
+    display: grid;
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto);
+    align-items: baseline;
+    gap: clamp(0.7rem, 0.3rem + 1.5vw, 1.8rem);
+    padding: clamp(0.8rem, 0.6rem + 0.35vw, 1.05rem) 0;
+    border-bottom: 1px solid var(--line-on-bg);
+    transition: padding-left 0.4s var(--ease), background 0.25s var(--ease);
+  }
+  .section:nth-child(even) .entry { border-bottom-color: #D4D0C4; }
+  .entry:hover {
+    padding-left: 0.65rem;
+    background: color-mix(in oklab, var(--card) 50%, transparent);
+  }
+  @media (max-width: 540px) {
+    .entry {
+      grid-template-columns: 1fr; gap: 0.15rem; row-gap: 0.2rem;
+      padding: 0.75rem 0;
+    }
+    .entry:hover { padding-left: 0; }
+  }
+
+  .entry__name {
+    font-family: var(--serif); font-size: var(--fs-1); font-weight: 500;
+    letter-spacing: -0.01em; color: var(--ink); white-space: nowrap;
+    transition: opacity 0.3s var(--ease);
+  }
+  .entry:hover .entry__name { opacity: 0.72; }
+  .entry__tier {
+    display: inline-block; margin-left: 0.5rem;
+    font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.05em;
+    color: var(--muted-card);
+    border: 1px solid var(--line-on-bg); border-radius: 4px;
+    padding: 0.04rem 0.35rem; vertical-align: 0.1em; white-space: nowrap;
+  }
+  .section:nth-child(even) .entry__tier { border-color: #C8C4B8; }
+  .entry__note {
+    color: var(--muted); font-size: var(--fs-0); font-weight: 400;
+    line-height: 1.45; min-width: 0;
+  }
+  .entry__host {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-family: var(--mono); font-size: var(--fs--1); color: var(--muted);
+    font-variant-numeric: tabular-nums; white-space: nowrap; justify-self: end;
+    transition: color 0.25s var(--ease);
+  }
+  .entry__host .arr {
+    width: 0.85em; height: 0.85em;
+    opacity: 0; transform: translate(-3px, 3px);
+    transition: opacity 0.3s var(--ease), transform 0.35s var(--ease);
+  }
+  .entry:hover .entry__host { color: var(--ink); }
+  .entry:hover .entry__host .arr { opacity: 1; transform: translate(0, 0); }
+  @media (max-width: 540px) {
+    .entry__host { justify-self: start; }
+    .entry__host .arr { opacity: 1; transform: none; }
+  }
+
+  /* ============================================================
+     页脚 (colophon)
+     ============================================================ */
+  .colophon {
+    background: var(--action); color: var(--tag-outline);
+    padding-block: clamp(2.5rem, 2rem + 3vw, 4.5rem) clamp(2rem, 1.5rem + 2vw, 3.5rem);
+  }
+  .colophon__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: clamp(2rem, 1rem + 4vw, 4.5rem);
+    align-items: end;
+  }
+  @media (max-width: 720px) { .colophon__grid { grid-template-columns: 1fr; gap: 2rem; align-items: start; } }
+  .colophon__mark {
+    font-family: var(--serif); font-size: var(--fs-3); font-weight: 400;
+    letter-spacing: -0.02em; line-height: 1;
+  }
+  .colophon__note {
+    color: var(--muted-dark); font-size: var(--fs--1); font-weight: 400;
+    margin-top: 0.9rem; max-width: 40ch; line-height: 1.6; text-wrap: pretty;
+  }
+  .colophon__meta {
+    font-family: var(--mono); font-size: var(--fs--1); color: var(--muted-dark);
+    font-variant-numeric: tabular-nums; line-height: 1.9; text-align: right;
+  }
+  @media (max-width: 720px) { .colophon__meta { text-align: left; } }
+  .colophon__meta b { color: var(--tag-outline); font-weight: 500; }
+
+  /* ============================================================
+     动效 — 纯增强，内容默认可见
+     ============================================================ */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-reveal].is-in {
+      animation: rise .85s var(--ease) both;
+      animation-delay: var(--d, 0ms);
+    }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: none; }
+    }
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--tag-outline);
+    outline-offset: 3px; border-radius: 3px;
+  }
+  .masthead :focus-visible { outline-color: var(--tag-outline); }
+</style>
+</head>
+<body>
+
+  <header class="topbar" id="topbar">
+    <div class="wrap topbar__in">
+      <a href="#top" class="topbar__brand" aria-label="AIHub Home">AIHub.</a>
+      <div class="topbar__right">
+        <div class="lang-switch" id="lang-switch">
+          <button class="is-active" data-lang="en" aria-label="English">EN</button>
+          <span class="sep">/</span>
+          <button data-lang="zh" aria-label="中文">中</button>
+        </div>
+        <span class="topbar__sep">|</span>
+        <span class="topbar__stats"><b id="meta-count">—</b> <span data-i18n="topbar_items">items</span> · <b id="meta-cats">—</b> <span data-i18n="topbar_lines">lines</span> · 2026.06</span>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+
+    <section class="masthead" aria-labelledby="hero-title">
+      <div class="wrap">
+        <p class="masthead__kicker" data-reveal data-i18n="hero_kicker">AI Tools Catalog · First Edition</p>
+        <h1 id="hero-title" data-reveal data-i18n="hero_title">A <em>browsable</em> index of AI tools.</h1>
+        <p class="masthead__sub" data-reveal data-i18n="hero_sub">Models, API relays, coding, image, video, voice, and beyond — archived into fourteen categories. Curated, organized, continuously updated.</p>
+        <div class="masthead__stats" data-reveal>
+          <div class="stat">
+            <span class="stat__num" id="stat-tools">—</span>
+            <span class="stat__label" data-i18n="stat_tools">Tools indexed</span>
+          </div>
+          <div class="stat">
+            <span class="stat__num" id="stat-cats">14</span>
+            <span class="stat__label" data-i18n="stat_cats">Categories</span>
+          </div>
+          <div class="stat">
+            <span class="stat__num">2026·06</span>
+            <span class="stat__label" data-i18n="stat_updated">Last updated</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <nav class="toc-strip" aria-label="Table of contents">
+      <div class="wrap">
+        <span class="toc-strip__label" data-i18n="toc_label">Contents — Jump to</span>
+        <ul class="toc-strip__list" id="toc-list"></ul>
+      </div>
+    </nav>
+
+    <!-- 过滤面板 -->
+    <div class="filter-bar" id="filter-bar">
+      <div class="wrap">
+        <div class="filter-bar__row">
+          <span class="filter-bar__label" data-i18n="filter_price">Price / Type</span>
+          <div class="filter-bar__chips" id="f-price"></div>
+        </div>
+        <div class="filter-bar__divider" aria-hidden="true"></div>
+        <div class="filter-bar__row">
+          <span class="filter-bar__label" data-i18n="filter_models">Models</span>
+          <div class="filter-bar__chips" id="f-models"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="catalog"></div>
+
+  </main>
+
+  <footer class="colophon">
+    <div class="wrap colophon__grid">
+      <div>
+        <p class="colophon__mark">AIHub.</p>
+        <p class="colophon__note" data-i18n="footer_note">A curated AI tools index for developers. All links point to official service sites; inclusion does not imply endorsement. Please verify availability and compliance independently.</p>
+      </div>
+      <div class="colophon__meta">
+        <div><b id="foot-count">—</b> <span data-i18n="footer_tools">tools</span></div>
+        <div><b>14</b> <span data-i18n="footer_cats">categories</span></div>
+        <div data-i18n="footer_date">Cataloged 2026 · 06 · 27</div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../shared/data.js"></script>
+  <script>
+  (function () {
+    "use strict";
+    var DATA = window.AIHUB_DATA;
+    if (!DATA) return;
+    var cats = DATA.categories;
+    var total = cats.reduce(function (s, c) { return s + c.items.length; }, 0);
+    var ts = total + "+";
+
+    /* ============================================================
+       i18n — 全站双语字典
+       ============================================================ */
+    var I18N = {
+
+      /* —— UI 字符串 —— */
+      hero_kicker:      { zh: "AI 工具编目 · 第一版",           en: "AI Tools Catalog · First Edition" },
+      hero_title:       { zh: "一份可<em>翻阅</em>的 AI 工具索引。", en: "A <em>browsable</em> index of AI tools." },
+      hero_sub:         { zh: "模型、API 中转站、编程、图像、视频、声音与更多——按用途归档为十四类。精挑、整理、持续更新。", en: "Models, API relays, coding, image, video, voice, and beyond — archived into fourteen categories. Curated, organized, continuously updated." },
+      stat_tools:       { zh: "收录工具", en: "Tools indexed" },
+      stat_cats:        { zh: "分类",     en: "Categories" },
+      stat_updated:     { zh: "最近更新", en: "Last updated" },
+      filter_price:     { zh: "价格 / 类型", en: "Price / Type" },
+      filter_models:    { zh: "模型", en: "Models" },
+      toc_label:        { zh: "目录 — 直接跳转至", en: "Contents — Jump to" },
+      topbar_items:     { zh: "个工具", en: "items" },
+      topbar_lines:     { zh: "类",     en: "lines" },
+      footer_note:      { zh: "为中文开发者整理的 AI 工具索引。所有链接均指向各服务官方站点；收录不代表背书，请自行甄别可用性与合规性。", en: "A curated AI tools index for developers. All links point to official service sites; inclusion does not imply endorsement. Please verify availability and compliance independently." },
+      footer_tools:     { zh: "个工具", en: "tools" },
+      footer_cats:      { zh: "个分类", en: "categories" },
+      footer_date:      { zh: "编目于 2026 · 06 · 27", en: "Cataloged 2026 · 06 · 27" },
+
+      /* —— 分类名 —— */
+      cat_relay:        { zh: "API 中转站",     en: "Relay & Aggregators" },
+      cat_official:     { zh: "官方模型平台",   en: "Official Models" },
+      cat_code:         { zh: "AI 编程",        en: "Code Assistants" },
+      cat_image:        { zh: "图像生成",       en: "Image" },
+      cat_video:        { zh: "视频生成",       en: "Video" },
+      cat_audio:        { zh: "音频与语音",     en: "Audio & Voice" },
+      cat_writing:      { zh: "写作与内容",     en: "Writing" },
+      cat_research:     { zh: "搜索与研究",     en: "Research" },
+      cat_design:       { zh: "设计工具",       en: "Design" },
+      cat_agent:        { zh: "自动化与 Agent", en: "Automation" },
+      cat_inference:    { zh: "推理与部署",     en: "Inference" },
+      cat_local:        { zh: "本地 AI",        en: "Local & Offline" },
+      cat_discovery:    { zh: "导航与发现",     en: "Discovery" },
+      cat_opensource:   { zh: "开源项目",       en: "Open Source" },
+
+      /* —— 分类描述 —— */
+      desc_relay:       { zh: "为开发者提供官方模型的统一入口、价格优化与稳定调度。", en: "Unified entry points to official models with pricing optimization and stable routing." },
+      desc_official:    { zh: "来自一线实验室的旗舰模型，官方对话入口与免费额度。", en: "Flagship models from leading labs — official chat access and free tier quotas." },
+      desc_code:        { zh: "从补全到自主工程，重塑日常写代码的方式。", en: "From autocomplete to autonomous engineering — reshaping how we write code." },
+      desc_image:       { zh: "把文字变成画面，从摄影写实到矢量插画。", en: "Turn text into visuals — from photorealism to vector illustration." },
+      desc_video:       { zh: "文本到视频、虚拟人与专业级编辑的新前沿。", en: "Text-to-video, virtual humans, and pro-grade editing — the new frontier." },
+      desc_audio:       { zh: "语音克隆、音乐创作与会议转录的全套声音工具。", en: "Voice cloning, music creation, and meeting transcription — the full audio toolkit." },
+      desc_writing:     { zh: "营销文案、学术写作到语法润色的写作伙伴。", en: "From marketing copy to academic writing and grammar polishing." },
+      desc_research:    { zh: "答案引擎、文献综述与论文对话，加速求知过程。", en: "Answer engines, literature reviews, and paper dialogue — accelerating discovery." },
+      desc_design:      { zh: "从线框图到成品界面，AI 介入设计的每个环节。", en: "From wireframes to final UI — AI across every stage of the design process." },
+      desc_agent:       { zh: "把重复劳动交给可编排的 Agent 与可视化工作流。", en: "Hand repetitive work to orchestrated agents and visual workflows." },
+      desc_inference:   { zh: "大规模推理、超低延迟与无服务器 GPU 的底层算力。", en: "Large-scale inference, ultra-low latency, and serverless GPU infrastructure." },
+      desc_local:       { zh: "在自己的设备上运行模型，把数据留在身边。", en: "Run models on your own hardware — keep your data close." },
+      desc_discovery:   { zh: "在浩瀚的 AI 工具海洋里，找到值得一试的那一个。", en: "Find the one worth trying in the vast ocean of AI tools." },
+      desc_opensource:  { zh: "可自部署的网关、代理与切换工具，把控制权交还给你。", en: "Self-hostable gateways, proxies, and switching tools — control reclaimed." },
+
+      /* —— 条目备注 (key: categoryId|itemName) —— */
+      notes: (function () {
+        var m = {
+          /* relay */
+          "relay|APIKEY.FUN":      { zh: "官方原价 7 折，企业级高可用", en: "Official 30% off, enterprise high-availability" },
+          "relay|星链 4SAPI":       { zh: "480+ 模型，99.99% SLA", en: "480+ models, 99.99% SLA" },
+          "relay|CatRouter":        { zh: "500+ 模型，负载均衡，可开票", en: "500+ models, load balancing, invoicing" },
+          "relay|TokenRiver":       { zh: "流式输出优化，零故障记录", en: "Streaming-optimized, zero-failure track record" },
+          "relay|ZenMux":           { zh: "仅官方授权渠道，原版模型", en: "Official authorized channels only, genuine models" },
+          "relay|laozhang.ai":      { zh: "官方汇率，赠金，极简操作", en: "Official exchange rate, credits, minimalist UX" },
+          "relay|AIHubMix":         { zh: "东京节点，完整缓存支持", en: "Tokyo nodes, full cache support" },
+          "relay|诗云 API":          { zh: "低至 5 折，金融政务合规", en: "Up to 50% off, fintech/government compliant" },
+          "relay|poloapi":          { zh: "官方 93 折，非逆向", en: "Official 7% off, non-reverse proxy" },
+          "relay|Leits API":        { zh: "企业级多数据中心", en: "Enterprise multi-datacenter" },
+          "relay|灵眸 AI":           { zh: "¥2.4/$ 最低汇率，Claude Code 缓存", en: "¥2.4/$ lowest rate, Claude Code caching" },
+          "relay|神马中转 API":       { zh: "¥2/$，650+ 模型", en: "¥2/$, 650+ models" },
+          "relay|PackyAPI":         { zh: "¥1/$ 低价王，社区活跃", en: "¥1/$ budget king, active community" },
+          "relay|Right Code":       { zh: "¥0.3/$，Claude Code 优化", en: "¥0.3/$, Claude Code optimized" },
+          "relay|极连 AI":           { zh: "Opus 仅原价 7%，自研调度", en: "Opus at 7% of retail, custom scheduler" },
+          "relay|CCGPAI":           { zh: "赠 $5，0.3 倍率", en: "$5 welcome credit, 0.3× multiplier" },
+          "relay|AI Code Mirror":   { zh: "老牌，官方 3.8 折", en: "Established, 62% off official pricing" },
+          "relay|apiyi":            { zh: "运营稳定，部分缓存", en: "Stable operations, partial caching" },
+          "relay|Terminal.Pub":     { zh: "按量 + 月订阅双模式", en: "Pay-as-you-go + monthly dual mode" },
+          "relay|NiceCode":         { zh: "V2EX 多次推荐", en: "Recommended repeatedly on V2EX" },
+          "relay|DDS Hub":          { zh: "Claude Max 号池", en: "Claude Max account pool" },
+          "relay|DuckCoding":       { zh: "编码首选，口碑好", en: "Top pick for coding, strong word-of-mouth" },
+          "relay|88code":           { zh: "每天送 20+8 刀免费额度", en: "Daily $20+8 free quota" },
+          "relay|aicoding.sh":      { zh: "大厂背景，稳定", en: "Big-tech background, reliable" },
+          "relay|AnyRouter":        { zh: "注册送 $125，LinuxDO/edu", en: "$125 signup bonus, LinuxDO/edu" },
+          "relay|GoGoGo 公益站":     { zh: "免费 Claude API", en: "Free Claude API" },
+          "relay|OpenRouter":       { zh: "全球最大 LLM 聚合，500 万+ 用户", en: "World's largest LLM aggregator, 5M+ users" },
+          "relay|302.AI":           { zh: "全球聚合，15+ 厂商", en: "Global aggregation, 15+ providers" },
+          /* official */
+          "official|Claude":            { zh: "Anthropic 官方对话", en: "Anthropic official chat" },
+          "official|ChatGPT":           { zh: "OpenAI 官方", en: "OpenAI official" },
+          "official|Gemini":            { zh: "Google 官方", en: "Google official" },
+          "official|Grok":              { zh: "xAI 官方", en: "xAI official" },
+          "official|DeepSeek":          { zh: "国产开源推理", en: "Chinese open-source reasoning" },
+          "official|KIMI":              { zh: "月之暗面长上下文", en: "Moonshot long-context" },
+          "official|通义千问":            { zh: "阿里", en: "Alibaba" },
+          "official|豆包":               { zh: "字节跳动", en: "ByteDance" },
+          "official|文心一言":            { zh: "百度", en: "Baidu" },
+          "official|Perplexity":        { zh: "AI 答案引擎", en: "AI answer engine" },
+          "official|Poe":               { zh: "Quora 多模型聚合", en: "Quora multi-model aggregator" },
+          "official|硅基流动":            { zh: "国产推理加速，28ms 首 Token", en: "Chinese inference acceleration, 28ms first token" },
+          "official|智谱 AI":            { zh: "GLM 官方，GLM-4-Flash 免费", en: "GLM official, GLM-4-Flash free" },
+          "official|DeepSeek API":       { zh: "官方 API，赠 10 元", en: "Official API, ¥10 welcome credit" },
+          "official|Moonshot API":       { zh: "Kimi 官方，赠 15 元", en: "Kimi official, ¥15 welcome credit" },
+          "official|阿里云百炼":          { zh: "阿里生态", en: "Alibaba ecosystem" },
+          "official|七牛云 AI":           { zh: "300 万 Token 免费，双协议", en: "3M free tokens, dual protocol" },
+          /* code */
+          "code|Cursor":             { zh: "AI 原生编辑器", en: "AI-native editor" },
+          "code|GitHub Copilot":      { zh: "企业标准", en: "Industry standard" },
+          "code|Windsurf":           { zh: "免费替代，Codeium", en: "Free alternative, Codeium" },
+          "code|Replit":             { zh: "浏览器 IDE", en: "Browser IDE" },
+          "code|v0":                 { zh: "Vercel，设计转代码", en: "Vercel, design-to-code" },
+          "code|Bolt":               { zh: "全栈 AI 生成", en: "Full-stack AI generation" },
+          "code|Lovable":            { zh: "AI 全栈应用", en: "AI full-stack apps" },
+          "code|Trae":               { zh: "字节 AI 编程", en: "ByteDance AI coding" },
+          "code|Aider":              { zh: "终端 AI 编程", en: "Terminal AI coding" },
+          "code|Cline":              { zh: "VS Code AI Agent", en: "VS Code AI Agent" },
+          "code|Continue":           { zh: "开源 IDE AI", en: "Open-source IDE AI" },
+          "code|Devin":              { zh: "全自主 AI 工程师", en: "Fully autonomous AI engineer" },
+          "code|Sourcegraph Cody":    { zh: "代码搜索 + AI", en: "Code search + AI" },
+          "code|Tabnine":            { zh: "隐私优先", en: "Privacy-first" },
+          /* image */
+          "image|Midjourney":        { zh: "最佳 AI 美学", en: "Best AI aesthetics" },
+          "image|DALL·E 3":           { zh: "OpenAI", en: "OpenAI" },
+          "image|Stable Diffusion":  { zh: "开源基石", en: "Open-source foundation" },
+          "image|Adobe Firefly":      { zh: "商业安全", en: "Commercially safe" },
+          "image|Ideogram":          { zh: "文字渲染最佳", en: "Best text rendering" },
+          "image|Leonardo":          { zh: "游戏资产", en: "Game assets" },
+          "image|Recraft":           { zh: "矢量设计", en: "Vector design" },
+          "image|Krea AI":           { zh: "实时生成", en: "Real-time generation" },
+          "image|Lexica":            { zh: "SD 搜索引擎", en: "SD search engine" },
+          "image|Civitai":           { zh: "模型社区", en: "Model community" },
+          "image|LiblibAI":          { zh: "国内模型社区", en: "Chinese model community" },
+          "image|SeaArt":            { zh: "亚洲审美", en: "Asian aesthetic" },
+          "image|TensorArt":         { zh: "中国 AI 图像平台", en: "Chinese AI image platform" },
+          "image|GetImg":            { zh: "AI 图像套件", en: "AI image suite" },
+        };
+        /* dense fill for remaining ~80 items — keep lookup compact */
+        var quick = {
+          "video|Sora":             ["OpenAI 视频生成","OpenAI video generation"],
+          "video|Runway":           ["Gen-4 专业编辑","Gen-4 pro editing"],
+          "video|Kling AI":         ["可灵，1080p/60fps","Kling, 1080p/60fps"],
+          "video|Pika":             ["社交视频","Social video"],
+          "video|HeyGen":           ["AI 虚拟人","AI virtual human"],
+          "video|Synthesia":        ["企业培训视频","Enterprise training videos"],
+          "video|Luma Dream Machine":["梦境引擎","Dream engine"],
+          "video|Descript":         ["播客与视频编辑","Podcast & video editing"],
+          "video|Pixverse":         ["免费视频生成","Free video generation"],
+          "video|Haiper":           ["视频生成","Video generation"],
+          "video|D-ID":             ["面部动画","Facial animation"],
+          "audio|ElevenLabs":       ["语音克隆与合成","Voice cloning & synthesis"],
+          "audio|Suno":             ["AI 音乐生成","AI music generation"],
+          "audio|Udio":             ["高保真音乐","High-fidelity music"],
+          "audio|Murf AI":          ["配音，120+ 声音","Voiceover, 120+ voices"],
+          "audio|AIVA":             ["管弦乐创作","Orchestral composition"],
+          "audio|Soundraw":         ["免版权音乐","Royalty-free music"],
+          "audio|Speechify":        ["文字转语音","Text to speech"],
+          "audio|PlayHT":           ["超真实 TTS","Ultra-realistic TTS"],
+          "audio|Resemble":         ["语音克隆","Voice cloning"],
+          "audio|Otter":            ["会议转录","Meeting transcription"],
+          "audio|Fireflies":        ["会议助手","Meeting assistant"],
+          "writing|Jasper":         ["企业营销 OS","Enterprise marketing OS"],
+          "writing|Copy.ai":        ["GTM 工作流","GTM workflows"],
+          "writing|Writesonic":     ["SEO 优化","SEO optimized"],
+          "writing|Grammarly":      ["语法与语调","Grammar & tone"],
+          "writing|Notion AI":      ["工作空间 AI","Workspace AI"],
+          "writing|QuillBot":       ["改写与摘要","Paraphrasing & summarization"],
+          "writing|Writer":         ["企业 AI 写作","Enterprise AI writing"],
+          "writing|Wordtune":       ["语气调校","Tone calibration"],
+          "writing|HyperWrite":     ["个人 AI 助手","Personal AI assistant"],
+          "writing|Jenni":          ["学术写作","Academic writing"],
+          "research|Perplexity":    ["AI 答案引擎","AI answer engine"],
+          "research|Consensus":     ["科研论文 AI","Scientific paper AI"],
+          "research|Elicit":        ["文献综述","Literature review"],
+          "research|SciSpace":      ["PDF 对话","PDF dialogue"],
+          "research|ChatPDF":       ["PDF 问答","PDF Q&A"],
+          "research|Humata":        ["文档 AI","Document AI"],
+          "research|Semantic Scholar":["学术搜索","Academic search"],
+          "research|Research Rabbit":["文献发现","Literature discovery"],
+          "research|Connected Papers":["文献图谱","Literature graph"],
+          "design|Figma AI":         ["产品设计","Product design"],
+          "design|Canva":           ["营销设计","Marketing design"],
+          "design|Framer":          ["AI 建站","AI site builder"],
+          "design|Uizard":          ["手绘转线框图","Hand-drawn to wireframe"],
+          "design|Galileo":         ["文本转设计","Text to design"],
+          "design|Microsoft Designer":["智能设计","Intelligent design"],
+          "design|Remove.bg":        ["AI 去背景","AI background removal"],
+          "design|Cleanup":          ["AI 修图","AI photo cleanup"],
+          "design|Let's Enhance":    ["AI 放大","AI upscaling"],
+          "design|Photopea":        ["在线 PS","Online Photoshop"],
+          "agent|Zapier":           ["8000+ 应用连接","8000+ app connections"],
+          "agent|Make":             ["可视化工作流","Visual workflows"],
+          "agent|n8n":              ["开源自动化","Open-source automation"],
+          "agent|Dify":             ["开源 LLM 应用","Open-source LLM apps"],
+          "agent|Coze":             ["扣子，Bot 部署","Coze, bot deployment"],
+          "agent|Flowise":          ["低代码 AI","Low-code AI"],
+          "agent|LangChain":        ["LLM 框架","LLM framework"],
+          "agent|CrewAI":           ["多 Agent 团队","Multi-agent teams"],
+          "agent|Relevance AI":     ["无代码 Agent","No-code agents"],
+          "agent|Lindy":            ["AI 工作助手","AI work assistant"],
+          "inference|Replicate":    ["开源模型 API","Open-source model API"],
+          "inference|Hugging Face": ["模型社区","Model community"],
+          "inference|Together AI":  ["大规模推理","Large-scale inference"],
+          "inference|Groq":         ["超低延迟 LPU","Ultra-low latency LPU"],
+          "inference|Cerebras":     ["晶圆级芯片","Wafer-scale chip"],
+          "inference|DeepInfra":    ["低价推理","Low-cost inference"],
+          "inference|Fireworks":    ["优化推理","Optimized inference"],
+          "inference|Baseten":      ["模型部署","Model deployment"],
+          "inference|Modal":        ["无服务器 GPU","Serverless GPU"],
+          "inference|RunPod":       ["GPU 云","GPU cloud"],
+          "local|Ollama":           ["本地 LLM","Local LLM"],
+          "local|LM Studio":        ["GUI 本地模型","GUI local models"],
+          "local|GPT4All":          ["隐私桌面 AI","Privacy desktop AI"],
+          "local|Open WebUI":       ["本地 ChatGPT UI","Local ChatGPT UI"],
+          "local|Jan":              ["离线 AI 桌面","Offline AI desktop"],
+          "local|Pinokio":          ["AI 浏览器","AI browser"],
+          "local|Msty":             ["本地 AI 桌面","Local AI desktop"],
+          "local|NVIDIA NIM":       ["企业推理","Enterprise inference"],
+          "discovery|There's An AI For That":["最大 AI 数据库","Largest AI database"],
+          "discovery|Futurepedia":  ["AI 目录","AI directory"],
+          "discovery|FutureTools":  ["分类 AI","Categorized AI"],
+          "discovery|Toolify":      ["2 万+ AI 网站","20K+ AI sites"],
+          "discovery|TopAI.tools":  ["个性化推荐","Personalized recommendations"],
+          "discovery|Product Hunt": ["新产品发布","New product launches"],
+          "discovery|小安 AI 导航":   ["1000+ 中文工具","1000+ Chinese tools"],
+          "discovery|ApiNav":       ["118+ 中转站导航","118+ relay navigation"],
+          "discovery|API Ranking":  ["86+ 站点 7×24 验真","86+ sites 24/7 verification"],
+          "opensource|One API":     ["34.9K★ 经典聚合","34.9K★ classic aggregator"],
+          "opensource|New API":     ["38.7K★ 社区衍生版","38.7K★ community fork"],
+          "opensource|LiteLLM":     ["50.3K★ 企业级 Gateway","50.3K★ enterprise gateway"],
+          "opensource|Higress":     ["8.6K★ 阿里 AI 网关","8.6K★ Alibaba AI gateway"],
+          "opensource|GPT-Load":    ["6.2K★ Go 轮询代理","6.2K★ Go polling proxy"],
+          "opensource|CC Router":   ["14K★ Claude Code 路由","14K★ Claude Code router"],
+          "opensource|One Hub":     ["2.8K★ 增强版","2.8K★ enhanced edition"],
+          "opensource|APIPark":     ["1.8K★ 云原生网关","1.8K★ cloud-native gateway"],
+          "opensource|Claude Relay Service":["拼车共享中转","Carpool relay sharing"],
+          "opensource|CC Switch":   ["多中转站切换管理","Multi-relay switch manager"],
+        };
+        Object.keys(quick).forEach(function (k) {
+          var v = quick[k];
+          m[k] = { zh: v[0], en: v[1] };
+        });
+        return m;
+      })(),
+
+      /* —— 层级标签 —— */
+      tiers: {
+        "企业":   { zh: "企业",   en: "Enterprise" },
+        "高性价比": { zh: "高性价比", en: "Budget" },
+        "社区":   { zh: "社区",   en: "Community" },
+        "公益":   { zh: "公益",   en: "Free" },
+        "国际":   { zh: "国际",   en: "Global" },
+      },
+    };
+
+    /* —— 辅助函数 —— */
+    /* ============================================================
+       过滤维度
+       ============================================================ */
+    var FILTER = {
+      price: [
+        { key: "all", zh: "全部", en: "All" },
+        { key: "budget", zh: "性价比", en: "Budget" },
+        { key: "free", zh: "完全免费", en: "Free" },
+        { key: "metered", zh: "按量计费", en: "Pay-as-you-go" },
+        { key: "enterprise", zh: "商业合作", en: "Enterprise" },
+      ],
+      model: [
+        { key: "all", zh: "全部", en: "All" },
+        { key: "claude", zh: "Claude", en: "Claude" },
+        { key: "deepseek", zh: "DeepSeek", en: "DeepSeek" },
+        { key: "gpt", zh: "GPT 系列", en: "GPT series" },
+        { key: "opensource", zh: "开源模型", en: "Open source" },
+        { key: "image-video", zh: "图像/视频", en: "Image / Video" },
+      ],
+    };
+
+    /* 条目元数据: key = "categoryId|itemName" → { price, models[] } */
+    var ITEM_META = (function () {
+      /* tier → price mapping */
+      var priceMap = { "企业":"enterprise", "高性价比":"budget", "社区":"budget", "公益":"free", "国际":"metered" };
+
+      /* per-item model tags (only items that support specific models) */
+      var modelTags = {
+        /* relay */
+        "relay|APIKEY.FUN":         ["claude","gpt","deepseek"],
+        "relay|星链 4SAPI":          ["claude","gpt","deepseek"],
+        "relay|CatRouter":          ["claude","gpt","deepseek"],
+        "relay|TokenRiver":         ["claude","gpt"],
+        "relay|ZenMux":             ["claude","gpt"],
+        "relay|laozhang.ai":        ["claude","gpt"],
+        "relay|AIHubMix":           ["claude","gpt","deepseek"],
+        "relay|诗云 API":             ["claude","gpt"],
+        "relay|poloapi":            ["claude","gpt"],
+        "relay|Leits API":          ["claude","gpt","deepseek"],
+        "relay|灵眸 AI":              ["claude"],
+        "relay|神马中转 API":          ["claude","gpt","deepseek"],
+        "relay|PackyAPI":           ["claude","gpt","deepseek"],
+        "relay|Right Code":         ["claude"],
+        "relay|极连 AI":              ["claude"],
+        "relay|CCGPAI":             ["claude","gpt"],
+        "relay|AI Code Mirror":     ["claude","gpt"],
+        "relay|apiyi":              ["claude","gpt"],
+        "relay|Terminal.Pub":       ["claude","gpt"],
+        "relay|NiceCode":           ["claude"],
+        "relay|DDS Hub":            ["claude"],
+        "relay|DuckCoding":         ["claude","gpt"],
+        "relay|88code":             ["claude","gpt"],
+        "relay|aicoding.sh":        ["claude","gpt"],
+        "relay|AnyRouter":          ["claude","gpt","deepseek"],
+        "relay|GoGoGo 公益站":       ["claude"],
+        "relay|OpenRouter":         ["claude","gpt","deepseek"],
+        "relay|302.AI":             ["claude","gpt","deepseek"],
+        /* official */
+        "official|Claude":          ["claude"],
+        "official|ChatGPT":         ["gpt"],
+        "official|Gemini":          ["opensource"],
+        "official|Grok":            ["opensource"],
+        "official|DeepSeek":        ["deepseek"],
+        "official|KIMI":            ["opensource"],
+        "official|通义千问":           ["opensource"],
+        "official|豆包":              ["opensource"],
+        "official|文心一言":           ["opensource"],
+        "official|Perplexity":      ["claude","gpt"],
+        "official|Poe":             ["claude","gpt"],
+        "official|硅基流动":           ["deepseek","opensource"],
+        "official|智谱 AI":           ["opensource"],
+        "official|DeepSeek API":     ["deepseek"],
+        "official|Moonshot API":     ["opensource"],
+        /* code */
+        "code|Cursor":              ["claude","gpt"],
+        "code|GitHub Copilot":       ["gpt","claude"],
+        "code|Cline":               ["claude"],
+        /* image */
+        "image|Midjourney":          ["image-video"],
+        "image|DALL·E 3":            ["image-video","gpt"],
+        "image|Stable Diffusion":    ["image-video","opensource"],
+        "image|Adobe Firefly":        ["image-video"],
+        "image|Ideogram":            ["image-video"],
+        "image|Leonardo":            ["image-video"],
+        "image|Krea AI":             ["image-video"],
+        "image|SeaArt":              ["image-video"],
+        "image|TensorArt":           ["image-video"],
+        /* video */
+        "video|Sora":                ["image-video","gpt"],
+        "video|Runway":              ["image-video"],
+        "video|Kling AI":            ["image-video"],
+        "video|Pika":                ["image-video"],
+      };
+
+      return {
+        getPrice: function (catId, item) {
+          if (item.tier && priceMap[item.tier]) return priceMap[item.tier];
+          return null; /* no price filter tag */
+        },
+        getModels: function (catId, item) {
+          var k = catId + "|" + item.name;
+          return modelTags[k] || null;
+        },
+      };
+    })();
+
+    /* 过滤状态 */
+    var activePrice = "all";
+    var activeModel = "all";
+
+    var lang = (function () { try { return localStorage.getItem("aihub-lang") || "en"; } catch (e) { return "en"; } })();
+    function t(key) {
+      var entry = I18N[key];
+      return (entry && entry[lang]) ? entry[lang] : key;
+    }
+    function tn(catId, itemName) {
+      var entry = I18N.notes[catId + "|" + itemName];
+      return (entry && entry[lang]) ? entry[lang] : "";
+    }
+    function tt(tier) {
+      var entry = I18N.tiers[tier];
+      return (entry && entry[lang]) ? entry[lang] : tier;
+    }
+    function host(u) {
+      try { return new URL(u).hostname.replace(/^www\./, ""); }
+      catch (e) { return u.replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0]; }
+    }
+
+    /* —— 应用 UI 字符串 —— */
+    function applyUI() {
+      var els = document.querySelectorAll("[data-i18n]");
+      for (var i = 0; i < els.length; i++) {
+        var el = els[i];
+        var k = el.getAttribute("data-i18n");
+        if (!k) continue;
+        /* special: hero_title wraps <em> — use innerHTML for that one */
+        if (k === "hero_title") {
+          el.innerHTML = t(k);
+        } else {
+          el.textContent = t(k);
+        }
+      }
+      /* update lang attr on html */
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    }
+
+    /* —— 渲染全部动态内容 —— */
+    var ARR = '<svg class="arr" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4 12L12 4M6 4h6v6"/></svg>';
+
+    function renderAll() {
+      var tocHtml = "";
+      var catHtml = "";
+
+      cats.forEach(function (c) {
+        /* TOC */
+        var catName = t("cat_" + c.id) || c.name;
+        tocHtml += '<li><a href="#cat-' + c.id + '">' +
+          '<span>' + c.index + '</span> ' + catName +
+          '</a></li>';
+
+        /* entries */
+        var rows = "";
+        c.items.forEach(function (it) {
+          var tierLabel = it.tier ? '<span class="entry__tier">' + tt(it.tier) + '</span>' : "";
+          var noteText = tn(c.id, it.name) || it.note;
+          var priceTag = ITEM_META.getPrice(c.id, it) || "";
+          var modelList = (ITEM_META.getModels(c.id, it) || []).join(",");
+          rows +=
+            '<a class="entry" href="' + it.url + '" target="_blank" rel="noopener noreferrer" data-reveal' +
+              ' data-price="' + priceTag + '" data-models="' + modelList + '">' +
+              '<span class="entry__name">' + it.name + tierLabel + '</span>' +
+              '<span class="entry__note">' + noteText + '</span>' +
+              '<span class="entry__host">' + host(it.url) + ARR + '</span>' +
+            '</a>';
+        });
+
+        var secName = t("cat_" + c.id) || c.name;
+        var secDesc = t("desc_" + c.id) || c.desc;
+        var secEn   = c.en; /* English name always stays in English */
+
+        catHtml +=
+          '<section class="section" id="cat-' + c.id + '" aria-labelledby="h-' + c.id + '">' +
+            '<div class="wrap section__grid">' +
+              '<div class="section__rail">' +
+                '<div class="section__index" data-reveal>' + c.index + '</div>' +
+                '<h2 class="section__title" id="h-' + c.id + '" data-reveal>' + secName + '</h2>' +
+                '<p class="section__en" data-reveal>' + secEn + '</p>' +
+                '<p class="section__desc" data-reveal>' + secDesc + '</p>' +
+              '</div>' +
+              '<div class="entries">' + rows + '</div>' +
+            '</div>' +
+          '</section>';
+      });
+
+      document.getElementById("toc-list").innerHTML = tocHtml;
+      document.getElementById("catalog").innerHTML = catHtml;
+
+      /* stats */
+      function set(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
+      set("meta-count", ts); set("meta-cats", cats.length);
+      set("stat-tools", ts); set("stat-cats", cats.length);
+      set("foot-count", ts);
+
+      applyUI();
+      renderFilterChips();
+      applyFilter();
+      observeReveal();
+    }
+
+    /* —— 过滤面板 —— */
+    function renderFilterChips() {
+      var langSuffix = lang === "zh" ? "zh" : "en";
+      /* price chips */
+      var pHtml = "";
+      FILTER.price.forEach(function (f, idx) {
+        pHtml += '<button class="filter-chip' + (activePrice === f.key ? " is-active" : "") + '" data-dim="price" data-key="' + f.key + '">' + f[langSuffix] + '</button>';
+      });
+      document.getElementById("f-price").innerHTML = pHtml;
+      /* model chips */
+      var mHtml = "";
+      FILTER.model.forEach(function (f, idx) {
+        mHtml += '<button class="filter-chip' + (activeModel === f.key ? " is-active" : "") + '" data-dim="model" data-key="' + f.key + '">' + f[langSuffix] + '</button>';
+      });
+      document.getElementById("f-models").innerHTML = mHtml;
+    }
+
+    function applyFilter() {
+      var sections = document.querySelectorAll("#catalog .section");
+      sections.forEach(function (sec) {
+        var entries = sec.querySelectorAll(".entry");
+        var visibleInSection = 0;
+        entries.forEach(function (entry) {
+          var pMatch = (activePrice === "all" || (entry.getAttribute("data-price") || "").split(",").indexOf(activePrice) >= 0);
+          var mMatch = (activeModel === "all"  || (entry.getAttribute("data-models") || "").split(",").indexOf(activeModel) >= 0);
+          var show = pMatch && mMatch;
+          entry.style.display = show ? "" : "none";
+          if (show) visibleInSection++;
+        });
+        sec.hidden = (visibleInSection === 0);
+      });
+    }
+
+    document.getElementById("filter-bar").addEventListener("click", function (e) {
+      var chip = e.target.closest(".filter-chip");
+      if (!chip) return;
+      var dim = chip.getAttribute("data-dim");
+      var key = chip.getAttribute("data-key");
+      if (dim === "price") { activePrice = key; }
+      if (dim === "model") { activeModel = key; }
+      renderFilterChips();
+      applyFilter();
+    });
+
+    /* —— 语言切换按钮 —— */
+    function syncLangButtons() {
+      var btns = document.querySelectorAll("#lang-switch button");
+      for (var i = 0; i < btns.length; i++) {
+        var b = btns[i];
+        if (b.getAttribute("data-lang") === lang) {
+          b.classList.add("is-active");
+        } else {
+          b.classList.remove("is-active");
+        }
+      }
+    }
+    document.getElementById("lang-switch").addEventListener("click", function (e) {
+      var btn = e.target.closest("button");
+      if (!btn) return;
+      var newLang = btn.getAttribute("data-lang");
+      if (newLang === lang) return;
+      lang = newLang;
+      try { localStorage.setItem("aihub-lang", lang); } catch (ex) {}
+      syncLangButtons();
+      renderAll();
+    });
+
+    /* —— 初始化 —— */
+    syncLangButtons();
+    renderAll();
+
+    /* —— 顶栏 stuck 态 —— */
+    var topbar = document.getElementById("topbar");
+    var onScroll = function () {
+      topbar.setAttribute("data-stuck", window.scrollY > 8 ? "true" : "false");
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    /* —— 动效：纯增强 —— */
+    function observeReveal() {
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window) {
+        var io = new IntersectionObserver(function (es) {
+          es.forEach(function (e) {
+            if (e.isIntersecting) {
+              var sibs = Array.prototype.slice.call(e.target.parentNode.querySelectorAll("[data-reveal]"));
+              var i = sibs.indexOf(e.target);
+              e.target.style.setProperty("--d", Math.min(i, 6) * 45 + "ms");
+              e.target.classList.add("is-in");
+              io.unobserve(e.target);
+            }
+          });
+        }, { rootMargin: "0px 0px -6% 0px", threshold: 0.05 });
+        document.querySelectorAll("[data-reveal]").forEach(function (el) { io.observe(el); });
+      }
+    }
+    observeReveal();
+  })();
+  </script>
+</body>
+</html>

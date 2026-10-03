@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AIHub — AI 工具中转站一览</title>
+<meta name="description" content="一块持续更新的 AI 工具「停靠板」。350+ 个模型、API 中转站与工具，分作 14 条线路，可按线路与名称即时筛选。" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     AIHub · Version B · frontend-design
+     概念：「AI 停靠板 / The Stations Board」
+     暖瓷底 · 几何无衬线 · 等宽数据 · 单一琥珀「在线」色
+     ============================================================ */
+
+  :root {
+    /* —— 暖色板 —— */
+    --bg:        #f4f2ec;   /* 暖瓷白，非纯白 */
+    --bg-2:      #efece3;   /* 略深，分区交替 */
+    --panel:     #fbfaf6;   /* 抬升面 */
+    --ink:       #1c1a16;   /* 暖近黑，非纯黑 */
+    --muted:     #6c6657;   /* 暖灰辅助，对底 ≈5.0:1 */
+    --faint:     #736c5c;   /* 淡灰，对底 ≈4.7:1（小字达标） */
+    --amber:     #bd6d10;   /* 琥珀「在线」标记色，对底 ≈3.5:1（非文字达标） */
+    --amber-ink: #8a5208;   /* 琥珀文字（对底 ≈5.2:1，达标） */
+    --line:      #e1dccf;   /* 发丝线 */
+    --line-2:    #d4cdba;
+
+    --display: "Space Grotesk", "PingFang SC", "Microsoft YaHei", sans-serif;
+    --body:    "Inter Tight", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    --mono:    "JetBrains Mono", ui-monospace, "Cascadia Code", monospace;
+
+    --s-1: clamp(0.72rem, 0.70rem + 0.08vw, 0.78rem);
+    --s0:  clamp(0.9rem, 0.87rem + 0.16vw, 1.0rem);
+    --s1:  clamp(1.05rem, 0.98rem + 0.32vw, 1.3rem);
+    --s2:  clamp(1.4rem, 1.2rem + 0.9vw, 2.0rem);
+    --s3:  clamp(2.4rem, 1.7rem + 3.4vw, 4.6rem);
+    --s4:  clamp(3.2rem, 2.0rem + 6vw, 7rem);
+
+    --pad: clamp(1.1rem, 0.7rem + 2vw, 2.5rem);
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+    --z-bar: 80;
+  }
+
+  *,*::before,*::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto; } }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: var(--s0);
+    font-weight: 400;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection { background: var(--ink); color: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+
+  .wrap { width: min(100% - 2*var(--pad), 1180px); margin-inline: auto; }
+
+  /* ============================================================
+     顶栏 —— 像车站信息条
+     ============================================================ */
+  .bar {
+    position: sticky; top: 0; z-index: var(--z-bar);
+    background: color-mix(in oklab, var(--bg) 88%, transparent);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid transparent;
+    transition: border-color .35s var(--ease);
+  }
+  .bar[data-stuck="true"]{ border-bottom-color: var(--line-2); }
+  .bar__in {
+    display:flex; align-items:center; justify-content:space-between;
+    gap:1rem; padding-block: .8rem;
+  }
+  .brand {
+    font-family: var(--display); font-weight:700; font-size: var(--s1);
+    letter-spacing:-0.01em; display:flex; align-items:center; gap:.55rem;
+  }
+  .live {
+    width:.5rem; height:.5rem; border-radius:50%;
+    background: var(--amber); flex:none;
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--amber) 60%, transparent);
+    animation: ping 2.6s var(--ease) infinite;
+  }
+  @keyframes ping {
+    0%   { box-shadow:0 0 0 0 color-mix(in oklab,var(--amber) 55%, transparent); }
+    70%  { box-shadow:0 0 0 7px color-mix(in oklab,var(--amber) 0%, transparent); }
+    100% { box-shadow:0 0 0 0 color-mix(in oklab,var(--amber) 0%, transparent); }
+  }
+  @media (prefers-reduced-motion: reduce){ .live{ animation:none; } }
+  .bar__meta {
+    font-family: var(--mono); font-size: var(--s-1); color: var(--muted);
+    letter-spacing:.02em; font-variant-numeric: tabular-nums;
+  }
+  .bar__meta b{ color:var(--ink); font-weight:500; }
+  @media (max-width:560px){ .bar__meta{ display:none; } }
+
+  /* ============================================================
+     报头 / 非居中 hero —— 板报式
+     ============================================================ */
+  .hero { padding-top: clamp(2.5rem,1.5rem+5vw,6rem); padding-bottom: clamp(1.5rem,1rem+2vw,2.5rem); }
+  .hero__tag {
+    font-family: var(--mono); font-size: var(--s-1); color: var(--amber-ink);
+    letter-spacing:.08em; text-transform:uppercase; margin:0 0 1.1rem;
+  }
+  .hero h1 {
+    font-family: var(--display); font-weight:600;
+    font-size: var(--s4); line-height:.98; letter-spacing:-0.035em;
+    margin:0; text-wrap:balance; max-width: 16ch;
+  }
+  .hero h1 .thin{ font-weight:400; color:var(--muted); }
+  .hero__sub {
+    font-size: var(--s1); color: var(--muted); font-weight:300;
+    margin: clamp(1.2rem,.8rem+1.4vw,2rem) 0 0; max-width: 46ch; line-height:1.55;
+    text-wrap:pretty;
+  }
+
+  /* ============================================================
+     控制台 —— 线路筛选 + 名称搜索（signature 交互）
+     ============================================================ */
+  .console {
+    position: sticky; top: 3.4rem; z-index: 60;
+    background: color-mix(in oklab, var(--bg) 92%, transparent);
+    backdrop-filter: blur(6px);
+    padding-block: .85rem;
+    margin-top: clamp(1.5rem,1rem+2vw,2.5rem);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .console__row { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+  .search {
+    display:flex; align-items:center; gap:.5rem;
+    background: var(--panel); border:1px solid var(--line-2);
+    border-radius:9px; padding:.5rem .75rem; flex:1 1 220px; min-width:0;
+    transition: border-color .25s var(--ease);
+  }
+  .search:focus-within{ border-color: var(--amber); }
+  .search svg{ color:var(--muted); flex:none; }
+  .search input {
+    border:0; background:transparent; outline:0; width:100%;
+    font-family: var(--body); font-size: var(--s0); color:var(--ink);
+  }
+  .search input::placeholder{ color: var(--faint); }
+  .chips { display:flex; gap:.45rem; flex-wrap:wrap; }
+  .chip {
+    font-family: var(--mono); font-size: var(--s-1); letter-spacing:.01em;
+    color: var(--muted); background: transparent;
+    border:1px solid var(--line-2); border-radius:7px;
+    padding:.42rem .7rem; cursor:pointer; white-space:nowrap;
+    transition: color .2s var(--ease), border-color .2s var(--ease), background .2s var(--ease);
+    font-variant-numeric: tabular-nums;
+  }
+  .chip:hover{ color: var(--ink); border-color: var(--ink); }
+  .chip[aria-pressed="true"]{ background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .chip__n{ opacity:.55; margin-left:.35rem; }
+
+  .console__count {
+    font-family: var(--mono); font-size: var(--s-1); color: var(--muted);
+    font-variant-numeric: tabular-nums; white-space:nowrap; margin-left:auto;
+  }
+  @media (max-width:680px){ .console__count{ width:100%; margin-left:0; } }
+
+  /* ============================================================
+     停靠板 —— 线路与车站
+     ============================================================ */
+  .board { padding-bottom: clamp(4rem,3rem+4vw,7rem); }
+
+  .line { padding-top: clamp(2.5rem,1.8rem+3vw,4.5rem); scroll-margin-top: 7rem; }
+  .line[hidden]{ display:none; }
+
+  .line__head {
+    display:flex; align-items:flex-end; justify-content:space-between;
+    gap:1rem; padding-bottom:.9rem; border-bottom:2px solid var(--ink);
+  }
+  .line__id {
+    font-family: var(--mono); font-size: var(--s-1); color: var(--amber-ink);
+    letter-spacing:.06em; display:block; margin-bottom:.45rem;
+  }
+  .line__name {
+    font-family: var(--display); font-weight:600; font-size: var(--s2);
+    letter-spacing:-0.02em; line-height:1.05; margin:0;
+  }
+  .line__en {
+    font-family: var(--mono); font-size: var(--s-1); color: var(--faint);
+    letter-spacing:.04em; margin:.4rem 0 0;
+  }
+  .line__desc {
+    font-size: var(--s0); color: var(--muted); font-weight:300;
+    margin:0; max-width: 38ch; text-align:right; line-height:1.5;
+  }
+  @media (max-width:640px){
+    .line__head{ flex-direction:column; align-items:stretch; gap:.6rem; }
+    .line__desc{ text-align:left; }
+  }
+
+  /* —— 车站行（带 timetable 引导点）—— */
+  .stations { list-style:none; margin:0; padding:0; }
+  .stn {
+    display:grid;
+    grid-template-columns: 1.9rem minmax(0,auto) 1fr minmax(0,auto);
+    align-items:baseline; gap:.6rem;
+    padding:.62rem 0; border-bottom:1px solid var(--line);
+    transition: background .25s var(--ease);
+  }
+  .stn:hover{ background: color-mix(in oklab, var(--amber) 7%, transparent); }
+  .stn__n {
+    font-family: var(--mono); font-size: var(--s-1); color: var(--faint);
+    font-variant-numeric: tabular-nums;
+  }
+  .stn__name {
+    font-family: var(--display); font-weight:500; font-size: var(--s1);
+    letter-spacing:-0.01em; color: var(--ink); white-space:nowrap;
+  }
+  .stn__tier {
+    font-family: var(--mono); font-size:.62rem; letter-spacing:.04em;
+    color: var(--amber-ink); border:1px solid color-mix(in oklab,var(--amber) 40%, var(--line));
+    border-radius:5px; padding:.04rem .36rem; margin-left:.5rem;
+    vertical-align:.1em; white-space:nowrap;
+  }
+  .stn__note {
+    color: var(--muted); font-size: var(--s0); font-weight:300;
+    min-width:0; line-height:1.45;
+    /* timetable 引导点：把说明与右侧主机用虚线相连 */
+    position: relative;
+  }
+  .stn__host {
+    font-family: var(--mono); font-size: var(--s-1); color: var(--faint);
+    font-variant-numeric: tabular-nums; white-space:nowrap;
+    display:inline-flex; align-items:center; gap:.4rem; justify-self:end;
+    transition: color .2s var(--ease);
+  }
+  .stn__host .arr{ width:.85em; height:.85em; opacity:.45; transform:translate(-2px,2px); transition: transform .35s var(--ease), opacity .25s var(--ease); }
+  .stn:hover .stn__host{ color: var(--amber-ink); }
+  .stn:hover .stn__host .arr{ opacity:1; transform:none; }
+
+  @media (max-width:600px){
+    .stn{ grid-template-columns: 1.6rem 1fr; grid-auto-rows:auto; gap:.15rem .6rem; padding:.7rem 0; }
+    .stn__name{ white-space:normal; }
+    .stn__note{ grid-column:2; }
+    .stn__host{ grid-column:2; justify-self:start; }
+    .stn__host .arr{ opacity:1; transform:none; }
+  }
+
+  .empty {
+    text-align:center; color:var(--muted); font-family:var(--mono);
+    font-size:var(--s0); padding: 4rem 1rem;
+  }
+  .empty[hidden]{ display:none; }
+
+  /* ============================================================
+     页脚
+     ============================================================ */
+  .foot {
+    border-top:1px solid var(--line-2);
+    padding-block: clamp(2.5rem,2rem+2vw,4rem);
+  }
+  .foot__in{ display:flex; justify-content:space-between; gap:2rem; flex-wrap:wrap; align-items:flex-end; }
+  .foot__brand{ font-family:var(--display); font-weight:700; font-size:var(--s2); letter-spacing:-0.02em; display:flex; align-items:center; gap:.5rem; }
+  .foot__note{ color:var(--muted); font-weight:300; font-size:var(--s-1); max-width:42ch; margin:.7rem 0 0; line-height:1.6; }
+  .foot__meta{ font-family:var(--mono); font-size:var(--s-1); color:var(--muted); text-align:right; line-height:1.9; font-variant-numeric:tabular-nums; }
+  @media (max-width:560px){ .foot__meta{ text-align:left; } }
+
+  /* —— 入场动效：纯增强，内容默认可见 —— */
+  @media (prefers-reduced-motion: no-preference){
+    [data-in].on{ animation: rise .7s var(--ease) both; animation-delay: var(--d,0ms); }
+    @keyframes rise{ from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:none;} }
+  }
+
+  :focus-visible{ outline:2px solid var(--amber); outline-offset:3px; border-radius:4px; }
+</style>
+</head>
+<body>
+
+  <header class="bar" id="bar">
+    <div class="wrap bar__in">
+      <a href="#top" class="brand" aria-label="AIHub 首页"><span class="live" aria-hidden="true"></span>AIHub</a>
+      <p class="bar__meta"><b id="m-tools">—</b> 个车站 · <b id="m-lines">—</b> 条线路 · 板面更新于 2026·06</p>
+    </div>
+  </header>
+
+  <main id="top">
+    <div class="wrap">
+      <section class="hero" aria-labelledby="h1">
+        <p class="hero__tag" data-in>The Stations Board · 在线</p>
+        <h1 id="h1" data-in>AI 工具<br />停靠板<span class="thin">。</span></h1>
+        <p class="hero__sub" data-in>把散落各处的模型、中转站与工具，当作一张运行中的线路图：十四条线路，三百余座车站。选一条线，或直接搜一个名字。</p>
+      </section>
+    </div>
+
+    <div class="console" id="console">
+      <div class="wrap console__row">
+        <label class="search" aria-label="按名称搜索车站">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" id="q" placeholder="搜索车站名 / 说明…" autocomplete="off" spellcheck="false" />
+        </label>
+        <div class="chips" id="chips" role="group" aria-label="按线路筛选"></div>
+        <span class="console__count" id="count" aria-live="polite"></span>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <div class="board" id="board"></div>
+      <p class="empty" id="empty" hidden>没有匹配的车站。换个关键词，或切回「全部线路」。</p>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot__in">
+      <div>
+        <p class="foot__brand"><span class="live" aria-hidden="true"></span>AIHub</p>
+        <p class="foot__note">为中文开发者整理的 AI 工具停靠板。所有车站均通往各服务官方站点；收录不代表背书，请自行甄别可用性与合规性。</p>
+      </div>
+      <div class="foot__meta">
+        <div><b id="f-tools">—</b> 车站</div>
+        <div>14 条线路</div>
+        <div>板面 2026·06·27</div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../shared/data.js"></script>
+  <script>
+  (function(){
+    "use strict";
+    var DATA = window.AIHUB_DATA; if(!DATA) return;
+    var cats = DATA.categories;
+    var total = cats.reduce(function(s,c){return s+c.items.length;},0);
+
+    function set(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; }
+    set("m-tools", total+"+"); set("m-lines", cats.length);
+    set("f-tools", total+"+");
+
+    function host(u){ try{return new URL(u).hostname.replace(/^www\./,"");}catch(e){return u.replace(/^https?:\/\//,"").replace(/^www\./,"").split("/")[0];} }
+    var ARR='<svg class="arr" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4 12L12 4M6 4h6v6"/></svg>';
+
+    // —— 线路筛选 chips ——
+    var chips = document.getElementById("chips");
+    var ch = '<button class="chip" type="button" aria-pressed="true" data-line="all">全部<span class="chip__n">'+total+'</span></button>';
+    cats.forEach(function(c){
+      ch += '<button class="chip" type="button" aria-pressed="false" data-line="'+c.id+'">'+c.name+'<span class="chip__n">'+c.items.length+'</span></button>';
+    });
+    chips.innerHTML = ch;
+
+    // —— 停靠板 ——
+    var board = document.getElementById("board");
+    var html = "";
+    cats.forEach(function(c){
+      var rows = "";
+      c.items.forEach(function(it,i){
+        var tier = it.tier ? '<span class="stn__tier">'+it.tier+'</span>' : "";
+        var num = ("0"+(i+1)).slice(-2);
+        var hay = (it.name+" "+it.note+" "+host(it.url)).toLowerCase();
+        rows += '<li class="stn" data-hay="'+hay.replace(/"/g,"")+'">'+
+          '<a class="stn__name-link" href="'+it.url+'" target="_blank" rel="noopener noreferrer" style="display:contents">'+
+            '<span class="stn__n">'+num+'</span>'+
+            '<span class="stn__name">'+it.name+tier+'</span>'+
+            '<span class="stn__note">'+it.note+'</span>'+
+            '<span class="stn__host">'+host(it.url)+ARR+'</span>'+
+          '</a></li>';
+      });
+      html += '<section class="line" id="line-'+c.id+'" data-line="'+c.id+'" aria-labelledby="ln-'+c.id+'">'+
+        '<div class="line__head" data-in>'+
+          '<div><span class="line__id">线路 '+c.index+' · '+c.en+'</span>'+
+            '<h2 class="line__name" id="ln-'+c.id+'">'+c.name+'</h2></div>'+
+          '<p class="line__desc">'+c.desc+'</p>'+
+        '</div>'+
+        '<ul class="stations">'+rows+'</ul></section>';
+    });
+    board.innerHTML = html;
+
+    // —— 筛选逻辑 ——
+    var lines = Array.prototype.slice.call(board.querySelectorAll(".line"));
+    var countEl = document.getElementById("count");
+    var emptyEl = document.getElementById("empty");
+    var qEl = document.getElementById("q");
+    var activeLine = "all";
+
+    function apply(){
+      var q = qEl.value.trim().toLowerCase();
+      var shown = 0;
+      lines.forEach(function(ln){
+        var lineMatch = (activeLine==="all" || ln.getAttribute("data-line")===activeLine);
+        var stns = ln.querySelectorAll(".stn");
+        var visInLine = 0;
+        stns.forEach(function(s){
+          var ok = lineMatch && (!q || s.getAttribute("data-hay").indexOf(q)>-1);
+          s.style.display = ok ? "" : "none";
+          if(ok){ visInLine++; shown++; }
+        });
+        ln.hidden = (visInLine===0);
+      });
+      countEl.textContent = shown===total ? ("显示全部 "+total+" 站") : ("匹配 "+shown+" 站");
+      emptyEl.hidden = shown>0;
+    }
+
+    chips.addEventListener("click", function(e){
+      var b = e.target.closest(".chip"); if(!b) return;
+      activeLine = b.getAttribute("data-line");
+      chips.querySelectorAll(".chip").forEach(function(x){ x.setAttribute("aria-pressed", x===b ? "true":"false"); });
+      apply();
+      if(activeLine!=="all"){
+        var t = document.getElementById("line-"+activeLine);
+        if(t){ var y = t.getBoundingClientRect().top + window.scrollY - 110; window.scrollTo({top:y, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"}); }
+      }
+    });
+    var t; qEl.addEventListener("input", function(){ clearTimeout(t); t=setTimeout(apply,90); });
+    apply();
+
+    // —— 顶栏 stuck 态 ——
+    var bar = document.getElementById("bar");
+    var onScroll=function(){ bar.setAttribute("data-stuck", window.scrollY>8?"true":"false"); };
+    onScroll(); window.addEventListener("scroll", onScroll, {passive:true});
+
+    // —— 入场动效：纯增强 ——
+    if(!matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window){
+      var io = new IntersectionObserver(function(es){
+        es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add("on"); io.unobserve(e.target); } });
+      }, {rootMargin:"0px 0px -6% 0px", threshold:.05});
+      document.querySelectorAll("[data-in]").forEach(function(el){ io.observe(el); });
+    }
+  })();
+  </script>
+</body>
+</html>
