@@ -114,8 +114,8 @@
   }
   /* 强调部分同字族降一档字重 — 中文笔画密，300 在大字号下会显虚 */
   html[lang="zh-CN"] .masthead h1 em {
-    font-family: inherit; font-style: normal; font-weight: 400;
-    opacity: 1; color: var(--ink);
+    font-family: inherit; font-style: normal; font-weight: 500;
+    opacity: 1; color: var(--accent-clay);
   }
   html[lang="zh-CN"] .masthead__sub,
   html[lang="zh-CN"] .section__desc,
@@ -158,7 +158,9 @@
   html[lang="zh-CN"] .topbar__stats b,
   html[lang="zh-CN"] .colophon__meta { font-variant-numeric: tabular-nums; }
 
-  ::selection { background: var(--ink); color: var(--canvas); }
+  ::selection { background: var(--accent-clay); color: #ffffff; }
+  ::-moz-selection { background: var(--accent-clay); color: #ffffff; }
+  .masthead h1 em::selection { opacity: 1; color: #ffffff; }
   a { color: inherit; text-decoration: none; }
 
   /* ============================================================
@@ -237,7 +239,7 @@
   .masthead h1 em {
     font-style: italic; font-weight: 400;
     font-family: var(--serif);
-    color: var(--ink); opacity: 0.65;
+    color: var(--accent-clay); opacity: 1;
   }
   /* body prose — Anthropic Serif 24px */
   .masthead__sub {
@@ -289,13 +291,14 @@
     background: rgba(255, 255, 255, 0.28); color: var(--ink);
     font-family: var(--sans); font-size: 0.9375rem;
     padding: 0 5.8rem 0 var(--sp-lg);
+    caret-color: var(--accent-clay);
     transition: border-color 180ms var(--ease), background-color 180ms var(--ease), box-shadow 180ms var(--ease);
   }
   .search-input::placeholder { color: var(--text-tertiary); }
   .search-input:focus {
-    outline: none; border-color: var(--ink);
-    background: rgba(255, 255, 255, 0.42);
-    box-shadow: 0 0 0 3px rgba(20, 20, 19, 0.1);
+    outline: none; border-color: var(--accent-clay);
+    background: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.18);
   }
   .search-kbd {
     position: absolute; right: var(--sp-md); top: 50%; transform: translateY(-50%);
@@ -366,16 +369,17 @@
     border: 1px solid var(--hairline); background: transparent; color: var(--text-muted);
     transition: background 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease);
   }
-  .filter-chip:hover { color: var(--ink); border-color: var(--text-secondary); }
-  /* active chip — Anthropic slate-fill pattern */
+  .filter-chip:hover { color: var(--ink); border-color: var(--accent-clay); }
+  /* active chip — Claude accent-clay fill */
   .filter-chip.is-active {
-    background: var(--ink); border-color: var(--ink);
-    color: var(--canvas); font-weight: 500;
+    background: var(--accent-clay); border-color: var(--accent-clay);
+    color: #ffffff; font-weight: 500;
   }
   .filter-chip--jump.is-current {
-    background: rgba(20, 20, 19, 0.045);
-    border-color: var(--ink);
-    color: var(--ink);
+    background: rgba(217, 119, 87, 0.08);
+    border-color: var(--accent-clay);
+    color: var(--accent-clay);
+    font-weight: 500;
   }
   .filter-bar__divider {
     height: 1px; background: var(--hairline); width: var(--rule-width);
@@ -474,9 +478,9 @@
     margin-top: var(--sp-base);
     font-family: var(--serif); font-size: 0.9375rem;
     color: var(--ink); text-decoration: underline;
-    text-underline-offset: 3px; transition: opacity 0.2s var(--ease);
+    text-underline-offset: 3px; transition: color 0.2s var(--ease), opacity 0.2s var(--ease);
   }
-  .inline-link:hover { opacity: 0.7; }
+  .inline-link:hover { color: var(--accent-clay); opacity: 1; }
 
   /* card meta rows */
   .card-meta { margin-top: var(--sp-xl); }
@@ -500,18 +504,18 @@
     color: var(--ink);
   }
 
-  /* CTA button — Anthropic button-primary */
+  /* CTA button — Claude accent clay button */
   .card-btn {
     align-self: flex-start; margin-top: var(--sp-lg);
     display: inline-flex; align-items: center; gap: var(--sp-sm);
-    background: var(--ink); color: var(--canvas);
+    background: var(--accent-clay); color: #ffffff;
     font-family: var(--serif); font-weight: 600; font-size: var(--fs-button);
     padding: var(--sp-md) var(--sp-lg); border-radius: var(--r-md);
     text-decoration: none; border: none; cursor: pointer;
     height: 44px;
-    transition: opacity 0.2s var(--ease);
+    transition: background-color 0.2s var(--ease), opacity 0.2s var(--ease);
   }
-  .card-btn:hover { opacity: 0.9; }
+  .card-btn:hover { background: #c2683f; opacity: 1; }
   .card-btn .arr { font-size: 1rem; }
 
   /* ============================================================
