@@ -162,10 +162,6 @@
   html[lang="zh-CN"] .card-meta__key {
     font-family: var(--zh-sans); letter-spacing: 0.04em;
   }
-  /* 数字保留西文衬线 */
-  html[lang="zh-CN"] .stat__num {
-    font-family: "Source Serif 4", Georgia, serif;
-  }
   /* meta 值含中文（分类名），走黑体 — 混排时宋体的中文会显糊 */
   html[lang="zh-CN"] .card-meta__val {
     font-family: var(--zh-sans); font-size: 0.9375rem;
@@ -272,9 +268,9 @@
   }
   .stat { line-height: 1.1; }
   .stat__num {
-    font-family: var(--serif); font-size: var(--fs-display-md); font-weight: 400;
+    font-family: var(--sans); font-size: 2.25rem; font-weight: 600;
     color: var(--ink); font-variant-numeric: tabular-nums;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.02em;
   }
   .stat__label {
     display: block; font-family: var(--mono); font-size: 0.75rem;
@@ -642,15 +638,15 @@
         </div>
         <div class="masthead__stats" data-reveal>
           <div class="stat">
-            <span class="stat__num" id="stat-tools">—</span>
+            <span class="stat__num" id="stat-tools">81+</span>
             <span class="stat__label" data-i18n="stat_tools">Tools indexed</span>
           </div>
           <div class="stat">
-            <span class="stat__num" id="stat-cats">14</span>
+            <span class="stat__num" id="stat-cats">5</span>
             <span class="stat__label" data-i18n="stat_cats">Categories</span>
           </div>
           <div class="stat">
-            <span class="stat__num">2026·06</span>
+            <span class="stat__num">2026.06</span>
             <span class="stat__label" data-i18n="stat_updated">Last updated</span>
           </div>
         </div>
@@ -687,9 +683,9 @@
         <p class="colophon__note" data-i18n="footer_note">A curated AI tools index for developers. All links point to official service sites; inclusion does not imply endorsement.</p>
       </div>
       <div class="colophon__meta">
-        <div><b id="foot-count">—</b> <span data-i18n="footer_tools">tools</span></div>
-        <div><b id="foot-cats">14</b> <span data-i18n="footer_cats">categories</span></div>
-        <div data-i18n="footer_date">Cataloged 2026 · 06 · 27</div>
+        <div><b id="foot-count">81+</b> <span data-i18n="footer_tools">tools</span></div>
+        <div><b id="foot-cats">5</b> <span data-i18n="footer_cats">categories</span></div>
+        <div data-i18n="footer_date">Cataloged 2026.06</div>
       </div>
     </div>
   </footer>
@@ -725,7 +721,7 @@
       footer_note:      { zh: "为中文开发者整理的 AI 工具索引。所有链接均指向各服务官方站点；收录不代表背书，请自行甄别可用性与合规性。", en: "A curated AI tools index for developers. All links point to official service sites; inclusion does not imply endorsement. Please verify availability and compliance independently." },
       footer_tools:     { zh: "个工具", en: "tools" },
       footer_cats:      { zh: "个分类", en: "categories" },
-      footer_date:      { zh: "编目于 2026 · 06 · 27", en: "Cataloged 2026 · 06 · 27" },
+      footer_date:      { zh: "编目于 2026.06", en: "Cataloged 2026.06" },
       cat_relay:        { zh: "API 中转站",     en: "Relay & Aggregators" },
       cat_official:     { zh: "官方模型平台",   en: "Official Models" },
       cat_code:         { zh: "AI 编程",        en: "Code Assistants" },
