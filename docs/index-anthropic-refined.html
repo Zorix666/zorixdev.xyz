@@ -11,13 +11,6 @@
 <style>
   /* —— 核心本地自托管字体 (零外部依赖，极速秒开) —— */
   @font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 400 700;
-    font-display: swap;
-    src: url('fonts/inter.woff2') format('woff2');
-  }
-  @font-face {
     font-family: 'Source Serif 4';
     font-style: normal;
     font-weight: 400 600;
@@ -71,12 +64,12 @@
     --accent-cactus:    #bcd1ca;
     --accent-sky:       #6a9bcc;
 
-    /* —— Anthropic 字体堆栈 (本地自托管 + 高清系统回退) —— */
-    --serif: "Source Serif 4", "Songti SC", "SimSun", "STSong", "Georgia", serif;
-    --sans:  "Inter", system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
-    --mono:  "JetBrains Mono", "Cascadia Code", "Consolas", ui-monospace, monospace;
-    --zh-serif: "Songti SC", "SimSun", "Source Serif 4", serif;
-    --zh-sans:  system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    /* —— Anthropic 设计规范字体堆栈 (生产级安全回退链) —— */
+    --serif: "Source Serif 4", Charter, Georgia, "PingFang SC", "Microsoft YaHei", serif;
+    --sans:  -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    --mono:  "JetBrains Mono", "SF Mono", Monaco, "Cascadia Code", "Consolas", monospace;
+    --zh-serif: "Source Serif 4", "PingFang SC", "Microsoft YaHei", sans-serif;
+    --zh-sans:  -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
 
     /* —— Anthropic 字阶 (DESIGN.md 精确映射) —— */
     --fs-display-section: clamp(3rem, 2rem + 5vw, 5.625rem);  /* 90px */
@@ -119,8 +112,11 @@
     font-family: var(--sans);
     font-size: var(--fs-body-md);
     font-weight: 400;
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
+    line-height: 1.62;
+    -webkit-font-smoothing: subpixel-antialiased;
+    -moz-osx-font-smoothing: auto;
+    text-rendering: optimizeLegibility;
+    font-optical-sizing: auto;
   }
 
   html[lang="zh-CN"] {
@@ -167,9 +163,8 @@
     font-family: var(--zh-sans); letter-spacing: 0.04em;
   }
   /* 数字保留西文衬线 */
-  html[lang="zh-CN"] .stat__num,
-  html[lang="zh-CN"] .inline-link {
-    font-family: "Source Serif 4", var(--zh-serif), serif;
+  html[lang="zh-CN"] .stat__num {
+    font-family: "Source Serif 4", Georgia, serif;
   }
   /* meta 值含中文（分类名），走黑体 — 混排时宋体的中文会显糊 */
   html[lang="zh-CN"] .card-meta__val {
@@ -480,25 +475,25 @@
 
   .card-head { flex: 1; }
 
-  /* card title — Anthropic Serif */
+  /* card title — Sans 600, clear & legible */
   .card-title {
-    font-family: var(--serif); font-weight: 500;
-    font-size: 1.625rem; line-height: 1.3; letter-spacing: -0.01em;
+    font-family: var(--sans); font-weight: 600;
+    font-size: 1.375rem; line-height: 1.3; letter-spacing: -0.01em;
     margin-bottom: var(--sp-md); color: var(--ink);
   }
 
-  /* card body — Anthropic Serif body */
+  /* card body — Sans 400, readable & breathable */
   .card-body {
-    font-family: var(--serif);
-    font-size: 1.0625rem; line-height: 1.6; letter-spacing: 0.01em;
+    font-family: var(--sans);
+    font-size: 0.9375rem; line-height: 1.62; letter-spacing: 0;
     color: var(--ink-soft);
   }
 
-  /* inline link */
+  /* inline link — Sans 500 */
   .inline-link {
     display: inline-flex; align-items: center; gap: var(--sp-sm);
     margin-top: var(--sp-base);
-    font-family: var(--serif); font-size: 0.9375rem;
+    font-family: var(--sans); font-size: 0.875rem; font-weight: 500;
     color: var(--ink); text-decoration: underline;
     text-underline-offset: 3px; transition: opacity 0.2s var(--ease);
   }
@@ -522,16 +517,16 @@
     color: var(--text-secondary);
   }
   .card-meta__val {
-    font-family: var(--serif); font-size: 1rem;
+    font-family: var(--sans); font-size: 0.875rem; font-weight: 500;
     color: var(--ink);
   }
 
-  /* CTA button — Anthropic button-primary */
+  /* CTA button — Sans 500 button-primary */
   .card-btn {
     align-self: flex-start; margin-top: var(--sp-lg);
     display: inline-flex; align-items: center; gap: var(--sp-sm);
     background: var(--ink); color: var(--canvas);
-    font-family: var(--serif); font-weight: 600; font-size: var(--fs-button);
+    font-family: var(--sans); font-weight: 500; font-size: 0.9375rem;
     padding: var(--sp-md) var(--sp-lg); border-radius: var(--r-md);
     text-decoration: none; border: none; cursor: pointer;
     height: 44px;
