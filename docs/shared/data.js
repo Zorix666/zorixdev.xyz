@@ -94,6 +94,7 @@ window.AIHUB_DATA = {
         { name: "Trae", url: "https://www.trae.ai", note: "字节 AI 编程" },
         { name: "Aider", url: "https://www.aider.chat", note: "终端 AI 编程" },
         { name: "Cline", url: "https://cline.bot", note: "VS Code AI Agent" },
+        { name: "agent-qa", url: "https://vostride.com", note: "自然语言 Web/Android/iOS 测试，memidex 持久记忆与经验证的自我改进" },
         { name: "Continue", url: "https://continue.dev", note: "开源 IDE AI" },
         { name: "OpenCode", url: "https://opencode.ai", note: "开源终端智能体，17 万星" },
         { name: "Roo Code", url: "https://roocode.com", note: "开源 VS Code 全能代理" },
